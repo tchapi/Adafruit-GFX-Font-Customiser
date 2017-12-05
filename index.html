@@ -1,0 +1,344 @@
+<html>
+<head>
+    <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.2.13/dist/semantic.min.css">
+  <style>
+    html, body {
+        margin: 10px;
+    }
+    textarea {
+        font-family: "Courier", monotype;
+        font-size: 0.9em !important;
+    }
+    #glyphs div.inner {
+        padding: 0.5em;
+        text-align: center;
+    }
+    #glyphs h2.inner {
+        font-size: 2em;
+        padding: 0.3em;
+        text-align: center;
+    }
+    #glyphs table {
+        border: 1px solid black;
+        border-top: none;
+        margin: auto;
+    }
+    #glyphs table.topBorder {
+        border-top: 1px solid black;
+    }
+
+    #glyphs table tr {
+        height: 10px;
+    }
+    #glyphs table td {
+        border: 1px solid lightgrey;
+        width: 10px;
+    }
+    #glyphs table td.cell.fill {
+        background: black;
+    }
+    #glyphs table.offsetTable {
+        border-bottom: none;
+        border-top: 1px solid black;
+    }
+    #glyphs table.offsetTable td.offset {
+        background: lightgrey;
+    }
+  </style>
+
+</head>
+<body>
+    <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+
+    <h1 class="ui header">Adafruit GFX Pixel font customiser</h1>
+    <p><em>Created by <a href="https://github.com/tchapi">tchapi</a> — Source code available on <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em></p>
+    <div class="ui divider"></div>
+
+    <div class="ui grid">
+        <div class="eight wide column">
+            <div class="ui teal segment">
+                <div class="ui form">
+                  <div class="field">
+                    <label>Original font file <em class="fontname" style="display: none;">FontName unknown</em></label>
+                    <textarea id="source"></textarea>
+                  </div>
+                    <button class="ui button teal" id="extract">Extract</button>
+                </div>   
+            </div> 
+        </div>
+
+        <div class="eight wide column">
+            <div class="ui green segment" id="resultWrapper">
+                <div class="ui form">
+                    <div class="field">
+                        <label>Output</label>
+                        <textarea id="result" readonly></textarea>
+                    </div>
+                    <button class="ui button green" id="export">Process and create file</button>
+                </div>
+            </div> 
+        </div>
+    </div>
+
+    <h2 class="ui header">Separate glyphs</h2>
+    <div id="glyphs" class="ui grid"><em>Please past the content of a font file first</em></div>
+
+</body>
+<script>
+
+$(document).ready(function(){
+
+    window["name"] = null;
+    window["last_part"] = null;
+
+    $('#extract').click(function() {
+        var data = $("#source").val();
+
+        // Extract name
+        var re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
+        var found = data.match(re);
+
+        if (found != null && found.length > 1) {
+            window["name"] = found[1];
+
+            var re_size = /([a-zA-Z\_]*)([0-9]+)pt(.*)/
+            var found_size = name.match(re_size);
+            window["size"] = parseInt(found_size[2]);
+        } else {
+            alert("No correct font file found, please paste the content of an Adafruit GFX font file first.");
+            return;
+        }
+
+        $('#glyphs').empty();
+
+        // extract GFXFont part
+        var last_part_re = /const\ GFXfont([\s\S]*)/g;
+        var last_part = data.match(last_part_re);
+        window["last_part"] = last_part[0];
+
+        // Get first and last
+        var boundaries_re = /0x([0-9A-F]+)/gi;
+        var boundaries = last_part[0].match(boundaries_re);
+        window["first"] = boundaries[0];
+        window["last"] = boundaries[1];
+
+        data = data.replace(last_part[0], '');
+        data = data.replace(/\{/gi, '[').replace(/\}/gi, ']');
+        data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '');
+
+        eval(data);
+
+        /*
+        // Tada 🎉
+        console.log(window["name"]);
+        console.log(window["size"]);
+        console.log(window["first"]);
+        console.log(window["last"]);
+        console.log(window["last_part"]);
+        console.log(window[name + "Bitmaps"]);
+        console.log(window[name + "Glyphs"]);
+        */
+
+        $('.fontname').text(window["name"] + " — " + window["size"] + "pt").show();
+        
+        // Display tables
+        for (ind in window[name + "Glyphs"]) {
+
+            // for each glyph
+            var char = String.fromCharCode(parseInt(window["first"], 16) + parseInt(ind));
+            var w = window[name + "Glyphs"][ind][1];
+            var h = window[name + "Glyphs"][ind][2];
+            var adv = window[name + "Glyphs"][ind][3];
+            var ow = window[name + "Glyphs"][ind][4];
+            var oh = window[name + "Glyphs"][ind][5];
+            var n = "";
+
+            var table = $('<table cellspacing="1"></table>')
+                        .addClass('glyph')
+                        .attr('data-w', w)
+                        .attr('data-h', h)
+                        .attr('data-char', char)
+                        .attr('data-adv', adv)
+                        .attr('data-ow', ow)
+                        .attr('data-oh', oh);
+
+            // extract numbers
+            currentOffset = window[name + "Glyphs"][parseInt(ind)][0];
+            if (parseInt(ind) + 1 < window[name + "Glyphs"].length) {
+                nextOffset = window[name + "Glyphs"][parseInt(ind)+1][0];
+            } else {
+                nextOffset = window[name + "Bitmaps"].length;
+            }
+            for (var k = 0; k < (nextOffset - currentOffset); k++) {
+                n += ("000000000" + window[name + "Bitmaps"][currentOffset + k].toString(2)).substr(-8);
+            }
+
+            for(var i=0; i<h; i++){
+                var row = $('<tr></tr>');
+                for(var j=0; j<w; j++) {
+                    var cell = $('<td></td>').addClass("cell");
+                    if (n.charAt(i*w+j) == '1') {
+                        cell.addClass('fill');
+                    }
+                    row.append(cell);
+                }
+                table.append(row);
+            }
+
+            if (window['size'] <= 8) {
+                column_w = "two";
+            } else if (window['size'] <= 12) {
+                column_w = "four";
+            } else {
+                column_w = "four";
+            }
+
+            var grid = $('<div class="' + column_w + ' wide column"></div>');
+            var div = $('<div class="ui attached segment inner"></div>');
+
+            var tableOffset = $('<table cellspacing="1"></table>').addClass("offsetTable");
+            for(var i=0; i< (12 + oh); i++){
+                var rowOffset = $('<tr></tr>');
+                for(var j=0; j<w; j++) {
+                    var cell = $('<td></td>').addClass("offset");
+                    rowOffset.append(cell);
+                }
+                tableOffset.append(rowOffset);
+            }
+
+            if (w > 0 && (12 + oh) > 0) {
+                div.append(tableOffset);
+            } else {
+                table.addClass("topBorder");
+            }
+
+            div.append(table);
+
+            if (char == " ") {
+                grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>');
+            } else {
+                grid.append('<h2 class="ui top attached segment inner">' + char + '</h2>');
+            }
+
+            grid.append('<div class="ui attached segment inner secondary">' + "0x" + (parseInt(window["first"], 16) + parseInt(ind)).toString(16).toUpperCase() + '</div>');
+            grid.append(div);
+            grid.append('<div class="ui bottom attached warning message inner"><div class="ui mini compact buttons"><a href="#" class="ui compact button blue add-row">＋ Row</a><a href="#" class="ui compact button violet add-col">＋ Col</a></div></div>');
+
+            $('#glyphs').append(grid);
+        }
+    });
+
+    $(document).on('click', ".cell", function(e) {
+        $(e.target).toggleClass('fill');
+    });
+
+    $(document).on('click', ".add-row", function(e) {
+        var table = $(e.target).parent().parent().parent().find('table.glyph');
+        var cols = table.attr('data-w');
+        new_row = $('<tr></tr>');
+        for (var i = 0; i < cols; i++) {
+            new_row.append($('<td></td>').addClass("cell"))
+        }
+        table.append(new_row);
+        table.attr('data-h', parseInt(table.attr('data-h')) + 1);
+        return false;
+    });
+
+    $(document).on('click', ".add-col", function(e) {
+        var table = $(e.target).parent().parent().parent().find('table.glyph');
+        var tableOffset = $(e.target).parent().parent().parent().find('table.offsetTable');
+        var rows = table.attr('data-h');
+        table.find('tr').each(function(){
+            $(this).find('td:last').after($('<td></td>').addClass("cell"));
+        });
+        tableOffset.find('tr').each(function(){
+            $(this).find('td:last').after($('<td></td>').addClass("offset"));
+        });
+        table.attr('data-w', parseInt(table.attr('data-w')) + 1);
+        return false;
+    });
+
+    $('#export').click(function() {
+
+        var glyphs = [];
+        var bitsArray = [];
+        var offset = 0;
+
+        $("table.glyph").each(function() {
+            var t = $(this);
+            bits = "";
+
+            $(this).find("td").each(function() {
+                var e = $(this);
+                var ON = e.hasClass('fill')?"1":"0";
+                bits += ON;
+
+                // Each 8 bits, we form the HEX value
+                if (bits.length == 8) {
+                    bitsArray.push("0x" + ("00" + parseInt((bits + "00000000").slice(0, 8), 2).toString(16).toUpperCase()).slice(-2));
+                    bits = "";
+                }
+            });
+
+            // Remaining bits with padding then, if necessary
+            if (bits != "") {
+                bitsArray.push("0x" + ("00" + parseInt((bits + "00000000").slice(0, 8), 2).toString(16).toUpperCase()).slice(-2));
+            }
+
+            var isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h'))/8) + offset < window[name + "Bitmaps"].length;
+
+            glyphs.push(
+                "  { " +
+                ("     " + offset).slice(-5) + ", " +
+                ("   " + parseInt(t.attr('data-w'))).slice(-3) + ", " +
+                ("   " + parseInt(t.attr('data-h'))).slice(-3) + ", " +
+                ("   " + parseInt(t.attr('data-adv'))).slice(-3) + ", " +
+                ("    " + parseInt(t.attr('data-ow'))).slice(-4) + ", " +
+                ("    " + parseInt(t.attr('data-oh'))).slice(-4) + " }" + (isLastCharacter?",":" ") + "   " +
+                "// '" + t.attr('data-char') + "'");
+
+            offset = bitsArray.length;
+        });
+
+        // Bitmaps
+        var bitmapsOutput = "const uint8_t " + name + "Bitmaps[] PROGMEM = {\n";
+        // We want to join per 12 words
+        var limit = Math.floor(bitsArray.length / 12);
+        for (nb = 0; nb < limit; nb++) {
+
+            var isLastLine = (limit*12 == bitsArray.length) && (nb == limit -1);
+
+            bitmapsOutput += "  " + bitsArray[nb*12] + ", "
+                                  + bitsArray[nb*12+1] + ", "
+                                  + bitsArray[nb*12+2] + ", "
+                                  + bitsArray[nb*12+3] + ", "
+                                  + bitsArray[nb*12+4] + ", "
+                                  + bitsArray[nb*12+5] + ", "
+                                  + bitsArray[nb*12+6] + ", "
+                                  + bitsArray[nb*12+7] + ", "
+                                  + bitsArray[nb*12+8] + ", "
+                                  + bitsArray[nb*12+9] + ", "
+                                  + bitsArray[nb*12+10] + ", "
+                                  + bitsArray[nb*12+11] + (isLastLine?"":",") + " \n";
+        }
+        if (limit*12 != bitsArray.length) {
+            bitmapsOutput += "  " + bitsArray.slice(-(bitsArray.length - limit*12)).join(", ") + "\n";
+        }
+        bitmapsOutput += "};\n\n";
+
+        // Glyphs
+        var glyphsOutput = "const GFXglyph " + name + "Glyphs[] PROGMEM = {\n";
+        glyphsOutput += glyphs.join('\n') + "\n};\n\n";
+
+        data = bitmapsOutput + glyphsOutput + window["last_part"];
+        $("#result").val(data);
+
+    });
+});
+
+</script>
+</html>
