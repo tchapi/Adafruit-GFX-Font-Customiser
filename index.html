@@ -56,7 +56,16 @@
     #glyphs table.offsetTableBelow td.offset {
         background: lightgrey;
     }
-  </style>
+    .baseline {
+      position:absolute;
+      left:0px;
+      width:100%;
+      height:2px;
+      background-color:green;
+      opacity:0.2;
+      pointer-events: none;
+    }
+   </style>
 
 </head>
 <body>
@@ -255,8 +264,8 @@ function makeUpDownButton(name, func, color, width)
 function setOffsetTables()
 {
   $('#glyphs').children().each(function() {
-    var container = $(this).children().eq(2);
-    var table = container.children().eq(1);
+    var table = $(this).children().find('.glyph');
+    var container = table.parent();
     var yoffset = parseInt(table.attr("data-oh"));
     var height = parseInt(table.attr("data-h"));
     var width = parseInt(table.attr("data-w"));
@@ -264,7 +273,7 @@ function setOffsetTables()
     var tableOffsetHeight = maxBaseline + yoffset + 1;
     
     // set offset table above
-    var tableOffset = container.children().first();
+    var tableOffset = $(this).children().find('.offsetTableAbove');
     tableOffset.empty();
     for(var i = 0; i < tableOffsetHeight; i++) {
         var rowOffset = $('<tr></tr>');
@@ -274,13 +283,11 @@ function setOffsetTables()
         }
         tableOffset.append(rowOffset);
     }
-
-    container.prepend(tableOffset);
     
     // set offset table below
     var yAdvance = parseInt(window["yAdvance"]);
     tableOffsetHeight = yAdvance - tableOffsetHeight - height + 2;
-    tableOffset = container.children().last();
+    tableOffset = $(this).children().find('.offsetTableBelow');
     tableOffset.empty();
     for(var i = 0; i < tableOffsetHeight; i++) {
         var rowOffset = $('<tr></tr>');
@@ -290,8 +297,10 @@ function setOffsetTables()
         }
         tableOffset.append(rowOffset);
     }
-
-    container.append(tableOffset);
+    
+    // Set the baseline
+    var baseline = $(this).children().find('.baseline');
+    baseline.css("top", ((maxBaseline + 2) * 12) + "px");
   });
 }
 
@@ -416,6 +425,7 @@ $(document).ready(function(){
             div.append(table);
             var tableBelow = $('<table cellspacing="1"></table>').addClass("offsetTableBelow");
             div.append(tableBelow);
+            div.append('<div class="baseline"></div>');
 
             if (char == " ") {
                 grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>');
