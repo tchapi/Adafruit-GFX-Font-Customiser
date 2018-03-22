@@ -220,7 +220,7 @@ const GFXfont Font_5x7_practical8pt7b PROGMEM = {
     </div>
 
     <h2 class="ui header">Separate glyphs</h2>
-    <div id="glyphs" class="ui grid"><em>Please past the content of a font file first</em></div>
+    <div id="glyphs" class="ui grid"><em>Please paste the content of a font file first</em></div>
 
 </body>
 <script>
@@ -229,9 +229,9 @@ function makeUpDownButton(name, func, color, width)
 {
   var button = $('<div class="ui mini compact buttons" style="margin:1px; width:' + width + '"></div>');
   var style = 'ui compact button ' + func + '-handler ' + color;
-  button.append('<a href="#" id="' + func + '-add" class="' + style + '">+</a>');
-  button.append('<a href="#" id="' + func + '-reset" class="' + style + '">' + name + '</a>');
-  button.append('<a href="#" id="' + func + '-remove" class="' + style + '">-</a>');
+  button.append('<button id="' + func + '-add" class="' + style + '">+</button>');  
+  button.append('<button id="' + func + '-value" class="ui compact disabled blue button ' + color + '">' + name + '</button>');
+  button.append('<button id="' + func + '-remove" class="' + style + '">-</button>');
   return button;
 }
 
