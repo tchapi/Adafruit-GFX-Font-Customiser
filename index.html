@@ -236,10 +236,10 @@ const GFXfont Font_5x7_practical8pt7b PROGMEM = {
 
 function makeUpDownButton(name, func, color, width)
 {
-  var button = $('<div class="ui mini compact buttons" style="margin:1px; width:' + width + '"></div>');
+  var button = $('<div class="ui mini compact buttons" style="margin:1px"></div>');
   var style = 'ui compact button ' + func + '-handler ' + color;
   button.append('<button id="' + func + '-add" class="' + style + '">+</button>');  
-  button.append('<button id="' + func + '-value" class="ui compact disabled blue button ' + color + '">' + name + '</button>');
+  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + '">' + name + '</button>');
   button.append('<button id="' + func + '-remove" class="' + style + '">-</button>');
   return button;
 }
@@ -382,8 +382,9 @@ $(document).ready(function(){
             grid.append(div);
              
             var buttonBar = $('<div class="ui bottom attached warning message inner"></div>');
-            buttonBar.append(makeUpDownButton("Row", "row", "blue", 120));
-            buttonBar.append(makeUpDownButton("Col", "col", "violet", 120));
+            buttonBar.append(makeUpDownButton("Row", "row", "blue", 50));
+            buttonBar.append(makeUpDownButton("Col", "col", "violet", 50));
+            buttonBar.append(makeUpDownButton("Base", "base", "green", 50));
             
             grid.append(buttonBar);
 
