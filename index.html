@@ -25,6 +25,7 @@
     #glyphs table {
         border: 1px solid black;
         border-top: none;
+        border-bottom: none;
         margin: auto;
     }
     #glyphs table.topBorder {
@@ -41,11 +42,18 @@
     #glyphs table td.cell.fill {
         background: black;
     }
-    #glyphs table.offsetTable {
+    #glyphs table.offsetTableAbove {
         border-bottom: none;
         border-top: 1px solid black;
     }
-    #glyphs table.offsetTable td.offset {
+    #glyphs table.offsetTableAbove td.offset {
+        background: lightgrey;
+    }
+    #glyphs table.offsetTableBelow {
+        border-bottom: 1px solid black;
+        border-top: none;
+    }
+    #glyphs table.offsetTableBelow td.offset {
         background: lightgrey;
     }
   </style>
@@ -274,11 +282,12 @@ $(document).ready(function(){
         var last_part = data.match(last_part_re);
         window["last_part"] = last_part[0];
 
-        // Get first and last
-        var boundaries_re = /0x([0-9A-F]+)/gi;
-        var boundaries = last_part[0].match(boundaries_re);
-        window["first"] = boundaries[0];
-        window["last"] = boundaries[1];
+        // Get first, last and yOffset
+        var parts = last_part[0].split(",");
+        var number_re = /0[xX][0-9a-fA-F]+|[0-9]+/gi;
+        window["first"] = parts[2].match(number_re)[0];
+        window["last"] = parts[3].match(number_re)[0];
+        window["yAdvance"] = parts[4].match(number_re)[0];
 
         data = data.replace(last_part[0], '');
         data = data.replace(/\{/gi, '[').replace(/\}/gi, ']');
@@ -299,9 +308,14 @@ $(document).ready(function(){
 
         $('.fontname').text(window["name"] + " — " + window["size"] + "pt").show();
         
+        var yAdvance = parseInt(window["yAdvance"]);
+        
+        // Space from the baseline to the top of the character cell is determined by the character with the
+        // largest negative yOffset.
+        var maxBaseline = 0;
+
         // Display tables
         for (ind in window[name + "Glyphs"]) {
-
             // for each glyph
             var char = String.fromCharCode(parseInt(window["first"], 16) + parseInt(ind));
             var w = window[name + "Glyphs"][ind][1];
@@ -310,6 +324,8 @@ $(document).ready(function(){
             var ow = window[name + "Glyphs"][ind][4];
             var oh = window[name + "Glyphs"][ind][5];
             var n = "";
+            
+            maxBaseline = Math.max(maxBaseline, -oh);
 
             var table = $('<table cellspacing="1"></table>')
                         .addClass('glyph')
@@ -343,32 +359,16 @@ $(document).ready(function(){
                 table.append(row);
             }
 
-            if (window['size'] <= 8) {
+            if (window['size'] <= 10) {
                 column_w = "two";
-            } else if (window['size'] <= 12) {
+            } else if (window['size'] <= 18) {
                 column_w = "four";
             } else {
-                column_w = "four";
+                column_w = "six";
             }
 
             var grid = $('<div class="' + column_w + ' wide column"></div>');
             var div = $('<div class="ui attached segment inner"></div>');
-
-            var tableOffset = $('<table cellspacing="1"></table>').addClass("offsetTable");
-            for(var i=0; i< (12 + oh); i++){
-                var rowOffset = $('<tr></tr>');
-                for(var j=0; j<w; j++) {
-                    var cell = $('<td></td>').addClass("offset");
-                    rowOffset.append(cell);
-                }
-                tableOffset.append(rowOffset);
-            }
-
-            if (w > 0 && (12 + oh) > 0) {
-                div.append(tableOffset);
-            } else {
-                table.addClass("topBorder");
-            }
 
             div.append(table);
 
@@ -390,6 +390,76 @@ $(document).ready(function(){
 
             $('#glyphs').append(grid);
         }
+        
+        $('#glyphs').children().each(function() {
+          var container = $(this).children().eq(2);
+          var table = container.children().first();
+          var yoffset = parseInt(table.attr("data-oh"));
+          var height = parseInt(table.attr("data-h"));
+          var width = parseInt(table.attr("data-w"));
+          var tableOffsetHeight = maxBaseline + yoffset + 1;
+          
+          // Add a table above
+          var tableOffset = $('<table cellspacing="1"></table>').addClass("offsetTableAbove");
+          for(var i = 0; i < tableOffsetHeight; i++) {
+              var rowOffset = $('<tr></tr>');
+              for(var j = 0; j < width; j++) {
+                  var cell = $('<td></td>').addClass("offset");
+                  rowOffset.append(cell);
+              }
+              tableOffset.append(rowOffset);
+          }
+
+          container.prepend(tableOffset);
+          
+          // Add a table below
+          tableOffsetHeight = yAdvance - tableOffsetHeight - height + 2;
+          tableOffset = $('<table cellspacing="1"></table>').addClass("offsetTableBelow");
+          for(var i = 0; i < tableOffsetHeight; i++) {
+              var rowOffset = $('<tr></tr>');
+              for(var j = 0; j < width; j++) {
+                  var cell = $('<td></td>').addClass("offset");
+                  rowOffset.append(cell);
+              }
+              tableOffset.append(rowOffset);
+          }
+
+          container.append(tableOffset);
+        });
+
+
+
+
+
+
+        
+        // for(var i=0; i< (12 + oh); i++){
+        //     var rowOffset = $('<tr></tr>');
+        //     for(var j=0; j<w; j++) {
+        //         var cell = $('<td></td>').addClass("offset");
+        //         rowOffset.append(cell);
+        //     }
+        //     tableOffset.append(rowOffset);
+        // }
+        //
+        //
+        //
+        //
+        // if (w > 0 && (12 + oh) > 0) {
+        //     div.append(tableOffset);
+        // } else {
+        //     table.addClass("topBorder");
+        // }
+
+
+
+
+        
+        
+        
+        
+        
+        
     });
 
     $(document).on('click', ".cell", function(e) {
@@ -430,7 +500,7 @@ $(document).ready(function(){
         }
 
         var table = $(e.target).parent().parent().parent().find('table.glyph');
-        var tableOffset = $(e.target).parent().parent().parent().find('table.offsetTable');
+        var tableOffset = $(e.target).parent().parent().parent().find('table.offsetTableAbove');
         var rows = table.attr('data-h');
         table.find('tr').each(function(){
           if (add) {
