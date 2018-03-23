@@ -437,9 +437,11 @@ $(document).ready(function(){
             grid.append(div);
              
             var buttonBar = $('<div class="ui bottom attached warning message inner"></div>');
-            buttonBar.append(makeUpDownButton("Row", "row", "blue", 50));
-            buttonBar.append(makeUpDownButton("Col", "col", "violet", 50));
+            buttonBar.append(makeUpDownButton("Rows", "row", "purple", 50));
+            buttonBar.append(makeUpDownButton("Cols", "col", "violet", 50));
             buttonBar.append(makeUpDownButton("Base", "base", "green", 50));
+            buttonBar.append(makeUpDownButton("XOff", "xoff", "blue", 50));
+            buttonBar.append(makeUpDownButton("XAdv", "xadv", "teal", 50));
             
             grid.append(buttonBar);
 
