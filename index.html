@@ -24,14 +24,8 @@
     }
     #glyphs table {
         border: 1px solid black;
-        border-top: none;
-        border-bottom: none;
         margin: auto;
     }
-    #glyphs table.topBorder {
-        border-top: 1px solid black;
-    }
-
     #glyphs table tr {
         height: 10px;
     }
@@ -42,18 +36,7 @@
     #glyphs table td.cell.fill {
         background: black;
     }
-    #glyphs table.offsetTableAbove {
-        border-bottom: none;
-        border-top: 1px solid black;
-    }
-    #glyphs table.offsetTableAbove td.offset {
-        background: lightgrey;
-    }
-    #glyphs table.offsetTableBelow {
-        border-bottom: 1px solid black;
-        border-top: none;
-    }
-    #glyphs table.offsetTableBelow td.offset {
+    #glyphs table td.cell.dead {
         background: lightgrey;
     }
     .baseline {
@@ -261,46 +244,49 @@ function makeUpDownButton(name, func, color, width)
   return button;
 }
 
-function setOffsetTables()
+function setGlyphTable()
 {
   $('#glyphs').children().each(function() {
     var table = $(this).children().find('.glyph');
     var container = table.parent();
+	
+    var xadvance = parseInt(table.attr("data-adv"));
+    var yadvance = parseInt(window["yAdvance"]);
+	
+    var xoffset = parseInt(table.attr("data-ow"));
     var yoffset = parseInt(table.attr("data-oh"));
-    var height = parseInt(table.attr("data-h"));
+	
     var width = parseInt(table.attr("data-w"));
+    var height = parseInt(table.attr("data-h"));
+	
+	var pixels = table.attr("data-pixels");
+	
     var maxBaseline = window["maxBaseline"];
-    var tableOffsetHeight = maxBaseline + yoffset + 1;
+	
+	var left = xoffset;
+	var right = width + xoffset;
+	var top = maxBaseline + yoffset;
+	var bottom = top + height;
     
-    // set offset table above
-    var tableOffset = $(this).children().find('.offsetTableAbove');
-    tableOffset.empty();
-    for(var i = 0; i < tableOffsetHeight; i++) {
-        var rowOffset = $('<tr></tr>');
-        for(var j = 0; j < width; j++) {
-            var cell = $('<td></td>').addClass("offset");
-            rowOffset.append(cell);
+	// Set the table
+    table.empty();
+    for(var i = 0; i < yadvance; i++) {
+        var row = $('<tr></tr>');
+        for(var j = 0; j < xadvance; j++) {
+            var cell = $('<td></td>').addClass("cell");
+			if (i < top || i >= bottom || j < left || j >= right) {
+                cell.addClass('dead');
+			} else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
+                cell.addClass('fill');
+            }
+            row.append(cell);
         }
-        tableOffset.append(rowOffset);
-    }
-    
-    // set offset table below
-    var yAdvance = parseInt(window["yAdvance"]);
-    tableOffsetHeight = yAdvance - tableOffsetHeight - height + 2;
-    tableOffset = $(this).children().find('.offsetTableBelow');
-    tableOffset.empty();
-    for(var i = 0; i < tableOffsetHeight; i++) {
-        var rowOffset = $('<tr></tr>');
-        for(var j = 0; j < width; j++) {
-            var cell = $('<td></td>').addClass("offset");
-            rowOffset.append(cell);
-        }
-        tableOffset.append(rowOffset);
+        table.append(row);
     }
     
     // Set the baseline
     var baseline = $(this).children().find('.baseline');
-    baseline.css("top", ((maxBaseline + 2) * 12) + "px");
+    baseline.css("top", ((maxBaseline + 1) * 12) + "px");
   });
 }
 
@@ -377,15 +363,6 @@ $(document).ready(function(){
             
             maxBaseline = Math.max(maxBaseline, -oh);
 
-            var table = $('<table cellspacing="1"></table>')
-                        .addClass('glyph')
-                        .attr('data-w', w)
-                        .attr('data-h', h)
-                        .attr('data-char', char)
-                        .attr('data-adv', adv)
-                        .attr('data-ow', ow)
-                        .attr('data-oh', oh);
-
             // extract numbers
             currentOffset = window[name + "Glyphs"][parseInt(ind)][0];
             if (parseInt(ind) + 1 < window[name + "Glyphs"].length) {
@@ -397,17 +374,15 @@ $(document).ready(function(){
                 n += ("000000000" + window[name + "Bitmaps"][currentOffset + k].toString(2)).substr(-8);
             }
 
-            for(var i=0; i<h; i++){
-                var row = $('<tr></tr>');
-                for(var j=0; j<w; j++) {
-                    var cell = $('<td></td>').addClass("cell");
-                    if (n.charAt(i*w+j) == '1') {
-                        cell.addClass('fill');
-                    }
-                    row.append(cell);
-                }
-                table.append(row);
-            }
+            var table = $('<table cellspacing="1"></table>')
+                        .addClass('glyph')
+                        .attr('data-pixels', n)
+                        .attr('data-w', w)
+                        .attr('data-h', h)
+                        .attr('data-char', char)
+                        .attr('data-adv', adv)
+                        .attr('data-ow', ow)
+                        .attr('data-oh', oh);
 
             if (window['size'] <= 10) {
                 column_w = "two";
@@ -420,11 +395,7 @@ $(document).ready(function(){
             var grid = $('<div class="' + column_w + ' wide column"></div>');
             var div = $('<div class="ui attached segment inner"></div>');
 
-            var tableAbove = $('<table cellspacing="1"></table>').addClass("offsetTableAbove");
-            div.append(tableAbove);
             div.append(table);
-            var tableBelow = $('<table cellspacing="1"></table>').addClass("offsetTableBelow");
-            div.append(tableBelow);
             div.append('<div class="baseline"></div>');
 
             if (char == " ") {
@@ -449,7 +420,7 @@ $(document).ready(function(){
         }
         
         window["maxBaseline"] = maxBaseline;
-        setOffsetTables();       
+        setGlyphTable();       
      });
 
     $(document).on('click', ".cell", function(e) {
@@ -469,14 +440,14 @@ $(document).ready(function(){
       	}
       	table.append(new_row);
       	table.attr('data-h', parseInt(table.attr('data-h')) + 1);
-        setOffsetTables();
+        setGlyphTable();
       	return false;
       }
       
       if (targetID == "row-remove") {
         table.children().last().remove();
       	table.attr('data-h', parseInt(table.attr('data-h')) - 1);
-        setOffsetTables();
+        setGlyphTable();
       	return false;
       }
       return false;
@@ -506,7 +477,7 @@ $(document).ready(function(){
         } else {
           table.attr('data-w', parseInt(table.attr('data-w')) - 1);
         }
-        setOffsetTables();
+        setGlyphTable();
         return false;
     });
 
@@ -519,7 +490,7 @@ $(document).ready(function(){
           table.attr('data-oh', parseInt(table.attr('data-oh')) - 1);
         }
 
-        setOffsetTables();
+        setGlyphTable();
         return false;
     });
 
