@@ -182,7 +182,7 @@ const GFXglyph Font_5x7_practical8pt7bGlyphs[] PROGMEM = {
   {   276,   5,   7,   6,    0,   -4 },   // 0x67 'g'
   {   281,   5,   7,   6,    0,   -6 },   // 0x68 'h'
   {   286,   1,   7,   2,    0,   -6 },   // 0x69 'i'
-  {   287,   2,   9,   2,   -1,   -6 },   // 0x6A 'j'
+  {   287,   2,   9,   3,    0,   -6 },   // 0x6A 'j'
   {   290,   4,   7,   5,    0,   -6 },   // 0x6B 'k'
   {   294,   2,   7,   3,    0,   -6 },   // 0x6C 'l'
   {   296,   5,   5,   6,    0,   -4 },   // 0x6D 'm'
@@ -488,6 +488,32 @@ $(document).ready(function(){
           table.attr('data-oh', parseInt(table.attr('data-oh')) + 1);
         } else if (targetID == "base-remove") {
           table.attr('data-oh', parseInt(table.attr('data-oh')) - 1);
+        }
+
+        setGlyphTable();
+        return false;
+    });
+
+    $(document).on('click', ".xadv-handler", function(e) {
+        var targetID = $(e.target).attr("id");
+        var table = $(e.target).parent().parent().parent().find('table.glyph');
+        if (targetID == "xadv-add") {
+          table.attr('data-adv', parseInt(table.attr('data-adv')) + 1);
+        } else if (targetID == "xadv-remove") {
+          table.attr('data-adv', parseInt(table.attr('data-adv')) - 1);
+        }
+
+        setGlyphTable();
+        return false;
+    });
+
+    $(document).on('click', ".xoff-handler", function(e) {
+        var targetID = $(e.target).attr("id");
+        var table = $(e.target).parent().parent().parent().find('table.glyph');
+        if (targetID == "xoff-add") {
+          table.attr('data-ow', parseInt(table.attr('data-ow')) + 1);
+        } else if (targetID == "xoff-remove") {
+          table.attr('data-ow', parseInt(table.attr('data-ow')) - 1);
         }
 
         setGlyphTable();
