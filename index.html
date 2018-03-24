@@ -494,14 +494,9 @@ $(document).ready(function(){
         return false;
     });
 
-    $(document).on('click', ".xadv-handler", function(e) {
-        var targetID = $(e.target).attr("id");
-        var table = $(e.target).parent().parent().parent().find('table.glyph');
-        if (targetID == "xadv-add") {
-          table.attr('data-adv', parseInt(table.attr('data-adv')) + 1);
-        } else if (targetID == "xadv-remove") {
-          table.attr('data-adv', parseInt(table.attr('data-adv')) - 1);
-        }
+    $(document).on('click', ".xadv-handler", function(e) { var targetID = $(e.target).attr("id"); var table = $(e.target).parent().parent().parent().find('table.glyph'); if
+    (targetID == "xadv-add") { table.attr('data-adv', parseInt(table.attr('data-adv')) + 1); } else if (targetID == "xadv-remove") { table.attr('data-adv',
+    parseInt(table.attr('data-adv')) - 1); }
 
         setGlyphTable();
         return false;
