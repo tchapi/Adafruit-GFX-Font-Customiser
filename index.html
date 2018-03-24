@@ -557,6 +557,7 @@ $(document).ready(function(){
         var glyphs = [];
         var bitsArray = [];
         var offset = 0;
+		var isFirstCharacter = true;
 
         $("table.glyph").each(function() {
             var t = $(this);
@@ -584,16 +585,17 @@ $(document).ready(function(){
             var isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h'))/8) + offset < window[name + "Bitmaps"].length;
 
             glyphs.push(
-                "  { " +
+                " " + (isFirstCharacter ? " " : ",") + "{ " +
                 ("     " + offset).slice(-5) + ", " +
                 ("   " + parseInt(t.attr('data-w'))).slice(-3) + ", " +
                 ("   " + parseInt(t.attr('data-h'))).slice(-3) + ", " +
                 ("   " + parseInt(t.attr('data-adv'))).slice(-3) + ", " +
                 ("    " + parseInt(t.attr('data-ow'))).slice(-4) + ", " +
-                ("    " + parseInt(t.attr('data-oh'))).slice(-4) + " }" + (isLastCharacter?",":" ") + "   " +
+                ("    " + parseInt(t.attr('data-oh'))).slice(-4) + " }   " +
                 "// '" + t.attr('data-char') + "'");
 
             offset = bitsArray.length;
+			isFirstCharacter = false
         });
 
         // Bitmaps
