@@ -244,10 +244,8 @@ function makeUpDownButton(name, func, color, width)
   return button;
 }
 
-function setGlyphTable()
+function setGlyphTable(table)
 {
-  $('#glyphs').children().each(function() {
-    var table = $(this).children().find('.glyph');
     var container = table.parent();
 	
     var xadvance = parseInt(table.attr("data-adv"));
@@ -285,9 +283,8 @@ function setGlyphTable()
     }
     
     // Set the baseline
-    var baseline = $(this).children().find('.baseline');
+    var baseline = table.parent().find('.baseline');
     baseline.css("top", ((maxBaseline + 1) * 12) + "px");
-  });
 }
 
 $(document).ready(function(){
@@ -420,64 +417,41 @@ $(document).ready(function(){
         }
         
         window["maxBaseline"] = maxBaseline;
-        setGlyphTable();       
-     });
+		
+	    $('#glyphs').children().each(function() {
+        	setGlyphTable($(this).children().find('.glyph'));
+		});
+    });
 
     $(document).on('click', ".cell", function(e) {
         $(e.target).toggleClass('fill');
     });
 
     $(document).on('click', ".row-handler", function(e) {
-      var targetID = $(e.target).attr("id");
+      	var targetID = $(e.target).attr("id");
+      	var table = $(e.target).parent().parent().parent().find('table.glyph');
       
-      var table = $(e.target).parent().parent().parent().find('table.glyph');
-      var cols = table.attr('data-w');
-      
-      if (targetID == "row-add") {
-      	new_row = $('<tr></tr>');
-      	for (var i = 0; i < cols; i++) {
-          	new_row.append($('<td></td>').addClass("cell"))
-      	}
-      	table.append(new_row);
-      	table.attr('data-h', parseInt(table.attr('data-h')) + 1);
-        setGlyphTable();
+      	if (targetID == "row-add") {
+      		table.attr('data-h', parseInt(table.attr('data-h')) + 1);
+      	} else if (targetID == "row-remove") {
+      		table.attr('data-h', parseInt(table.attr('data-h')) - 1);
+		}
+		
+        setGlyphTable(table);
       	return false;
-      }
-      
-      if (targetID == "row-remove") {
-        table.children().last().remove();
-      	table.attr('data-h', parseInt(table.attr('data-h')) - 1);
-        setGlyphTable();
-      	return false;
-      }
-      return false;
     });
 
     $(document).on('click', ".col-handler", function(e) {
         var targetID = $(e.target).attr("id");
-        var add = false;
+        var table = $(e.target).parent().parent().parent().find('table.glyph');
+ 
         if (targetID == "col-add") {
-          add = true;
-        } else if (targetID != "col-remove") {
-          return false;
+            table.attr('data-w', parseInt(table.attr('data-w')) + 1);
+        } else if (targetID == "col-remove") {
+            table.attr('data-w', parseInt(table.attr('data-w')) - 1);
         }
 
-        var table = $(e.target).parent().parent().parent().find('table.glyph');
-        var rows = table.attr('data-h');
-        table.find('tr').each(function(){
-          if (add) {
-            $(this).find('td:last').after($('<td></td>').addClass("cell"));
-          } else {
-            $(this).find('td:last').remove();
-          }
-        });
-        
-        if (add) {
-          table.attr('data-w', parseInt(table.attr('data-w')) + 1);
-        } else {
-          table.attr('data-w', parseInt(table.attr('data-w')) - 1);
-        }
-        setGlyphTable();
+        setGlyphTable(table);
         return false;
     });
 
@@ -490,15 +464,20 @@ $(document).ready(function(){
           table.attr('data-oh', parseInt(table.attr('data-oh')) - 1);
         }
 
-        setGlyphTable();
+        setGlyphTable(table);
         return false;
     });
 
-    $(document).on('click', ".xadv-handler", function(e) { var targetID = $(e.target).attr("id"); var table = $(e.target).parent().parent().parent().find('table.glyph'); if
-    (targetID == "xadv-add") { table.attr('data-adv', parseInt(table.attr('data-adv')) + 1); } else if (targetID == "xadv-remove") { table.attr('data-adv',
-    parseInt(table.attr('data-adv')) - 1); }
+    $(document).on('click', ".xadv-handler", function(e) {
+		var targetID = $(e.target).attr("id");
+		var table = $(e.target).parent().parent().parent().find('table.glyph');
+		if (targetID == "xadv-add") {
+			table.attr('data-adv', parseInt(table.attr('data-adv')) + 1);
+		} else if (targetID == "xadv-remove") {
+			table.attr('data-adv', parseInt(table.attr('data-adv')) - 1);
+		}
 
-        setGlyphTable();
+        setGlyphTable(table);
         return false;
     });
 
@@ -506,12 +485,12 @@ $(document).ready(function(){
         var targetID = $(e.target).attr("id");
         var table = $(e.target).parent().parent().parent().find('table.glyph');
         if (targetID == "xoff-add") {
-          table.attr('data-ow', parseInt(table.attr('data-ow')) + 1);
+          	table.attr('data-ow', parseInt(table.attr('data-ow')) + 1);
         } else if (targetID == "xoff-remove") {
-          table.attr('data-ow', parseInt(table.attr('data-ow')) - 1);
+          	table.attr('data-ow', parseInt(table.attr('data-ow')) - 1);
         }
 
-        setGlyphTable();
+        setGlyphTable(table);
         return false;
     });
 
