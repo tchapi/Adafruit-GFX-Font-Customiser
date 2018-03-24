@@ -246,8 +246,6 @@ function makeUpDownButton(name, func, color, width)
 
 function setGlyphTable(table)
 {
-    var container = table.parent();
-	
     var xadvance = parseInt(table.attr("data-adv"));
     var yadvance = parseInt(window["yAdvance"]);
 	
@@ -285,6 +283,58 @@ function setGlyphTable(table)
     // Set the baseline
     var baseline = table.parent().find('.baseline');
     baseline.css("top", ((maxBaseline + 1) * 12) + "px");
+}
+
+function updatePixels(table, newWidth, newHeight)
+{
+    var width = parseInt(table.attr("data-w"));
+    var height = parseInt(table.attr("data-h"));
+	
+	if (newWidth < 0) {
+		newWidth = width;
+	}
+	
+	if (newHeight < 0) {
+		newHeight = height;
+	}
+	
+	// Extract the pixel values from the table
+	var pixels = "";
+    table.find("td").each(function() {
+		if (!$(this).hasClass('dead')) {
+			pixels += $(this).hasClass('fill') ? "1" : "0";
+		}
+	});
+	
+	// Store the pixels into a 2D bool array
+	var array = [ ];
+	for (var i = 0; i < height; ++i) {
+		var rowArray = [ ];
+		for (var j = 0; j < width; ++j) {
+			rowArray.push((pixels.charAt(i * width + j) == '1') ? true : false);
+		}
+		array.push(rowArray);
+	}
+	
+	// Write out to a string newWidth x newHeight
+	var newPixels = "";
+	for (var i = 0; i < newHeight; ++i) {
+		for (var j = 0; j < newWidth; ++j) {
+			if (i >= height || j >= width) {
+				newPixels += "0";
+			} else {
+				newPixels += array[i][j] ? "1" : "0";
+			}
+		}
+	}
+	
+	// Pad out to a multiple of 8
+	var pad = newPixels.length % 8;
+	for (var i = 0; i < pad; ++i) {
+		newPixels += "0";
+	}
+	
+    table.attr('data-pixels', newPixels);	
 }
 
 $(document).ready(function(){
@@ -425,18 +475,23 @@ $(document).ready(function(){
 
     $(document).on('click', ".cell", function(e) {
         $(e.target).toggleClass('fill');
+      	var table = $(e.target).parent().parent().parent().find('table.glyph');
+		updatePixels(table, -1, -1);
     });
 
     $(document).on('click', ".row-handler", function(e) {
       	var targetID = $(e.target).attr("id");
       	var table = $(e.target).parent().parent().parent().find('table.glyph');
+		var height = parseInt(table.attr('data-h'));
       
       	if (targetID == "row-add") {
-      		table.attr('data-h', parseInt(table.attr('data-h')) + 1);
+			height++
       	} else if (targetID == "row-remove") {
-      		table.attr('data-h', parseInt(table.attr('data-h')) - 1);
+			height--;
 		}
 		
+		updatePixels(table, -1, height);
+        table.attr('data-h', height);
         setGlyphTable(table);
       	return false;
     });
@@ -444,13 +499,16 @@ $(document).ready(function(){
     $(document).on('click', ".col-handler", function(e) {
         var targetID = $(e.target).attr("id");
         var table = $(e.target).parent().parent().parent().find('table.glyph');
+		var width = parseInt(table.attr('data-w'));
  
         if (targetID == "col-add") {
-            table.attr('data-w', parseInt(table.attr('data-w')) + 1);
+            width++;
         } else if (targetID == "col-remove") {
-            table.attr('data-w', parseInt(table.attr('data-w')) - 1);
+            width--;
         }
 
+		updatePixels(table, width, -1);
+        table.attr('data-w', width);
         setGlyphTable(table);
         return false;
     });
@@ -506,14 +564,16 @@ $(document).ready(function(){
 
             $(this).find("td").each(function() {
                 var e = $(this);
-                var ON = e.hasClass('fill')?"1":"0";
-                bits += ON;
+				if (!e.hasClass('dead')) {
+                	var ON = e.hasClass('fill')?"1":"0";
+                	bits += ON;
 
-                // Each 8 bits, we form the HEX value
-                if (bits.length == 8) {
-                    bitsArray.push("0x" + ("00" + parseInt((bits + "00000000").slice(0, 8), 2).toString(16).toUpperCase()).slice(-2));
-                    bits = "";
-                }
+                	// Each 8 bits, we form the HEX value
+                	if (bits.length == 8) {
+                    	bitsArray.push("0x" + ("00" + parseInt((bits + "00000000").slice(0, 8), 2).toString(16).toUpperCase()).slice(-2));
+                    	bits = "";
+                	}
+				}
             });
 
             // Remaining bits with padding then, if necessary
