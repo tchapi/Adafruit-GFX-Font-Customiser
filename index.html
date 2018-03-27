@@ -224,7 +224,7 @@ const GFXfont Font_5x7_practical8pt7b PROGMEM = {
                     </div>
                     <button class="ui button green" id="export">Process and create file</button>
                 </div>
-            </div> 
+            </div>
         </div>
     </div>
 
@@ -234,153 +234,149 @@ const GFXfont Font_5x7_practical8pt7b PROGMEM = {
 </body>
 <script>
 
-function makeUpDownButton(name, func, color, width)
-{
-  var button = $('<div class="ui mini compact buttons" style="margin:1px"></div>');
-  var style = 'ui compact button ' + func + '-handler ' + color;
-  button.append('<button id="' + func + '-add" class="' + style + '">+</button>');  
-  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + '">' + name + '</button>');
-  button.append('<button id="' + func + '-remove" class="' + style + '">-</button>');
-  return button;
+function makeUpDownButton (name, func, color, width) {
+  var button = $('<div class="ui mini compact buttons" style="margin:1px"></div>')
+  var style = 'ui compact button ' + func + '-handler ' + color
+  button.append('<button id="' + func + '-add" class="' + style + '">+</button>')
+  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + '">' + name + '</button>')
+  button.append('<button id="' + func + '-remove" class="' + style + '">-</button>')
+  return button
 }
 
-function setGlyphTable(table)
-{
-    var xadvance = parseInt(table.attr("data-adv"));
-    var yadvance = parseInt(window["yAdvance"]);
-	
-    var xoffset = parseInt(table.attr("data-ow"));
-    var yoffset = parseInt(table.attr("data-oh"));
-	
-    var width = parseInt(table.attr("data-w"));
-    var height = parseInt(table.attr("data-h"));
-	
-	var pixels = table.attr("data-pixels");
-	
-    var maxBaseline = window["maxBaseline"];
-	
-	var left = xoffset;
-	var right = width + xoffset;
-	var top = maxBaseline + yoffset;
-	var bottom = top + height;
-    
-	// Set the table
-    table.empty();
-    for(var i = 0; i < yadvance; i++) {
-        var row = $('<tr></tr>');
-        for(var j = 0; j < xadvance; j++) {
-            var cell = $('<td></td>').addClass("cell");
-			if (i < top || i >= bottom || j < left || j >= right) {
-                cell.addClass('dead');
-			} else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
-                cell.addClass('fill');
-            }
-            row.append(cell);
-        }
-        table.append(row);
+function setGlyphTable (table) {
+  var xadvance = parseInt(table.attr('data-adv'))
+  var yadvance = parseInt(window['yAdvance'])
+
+  var xoffset = parseInt(table.attr('data-ow'))
+  var yoffset = parseInt(table.attr('data-oh'))
+
+  var width = parseInt(table.attr('data-w'))
+  var height = parseInt(table.attr('data-h'))
+
+  var pixels = table.attr('data-pixels')
+
+  var maxBaseline = window['maxBaseline']
+
+  var left = xoffset
+  var right = width + xoffset
+  var top = maxBaseline + yoffset
+  var bottom = top + height
+
+  // Set the table
+  table.empty()
+  for (var i = 0; i < yadvance; i++) {
+    var row = $('<tr></tr>')
+    for (var j = 0; j < xadvance; j++) {
+      var cell = $('<td></td>').addClass('cell')
+      if (i < top || i >= bottom || j < left || j >= right) {
+        cell.addClass('dead')
+      } else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
+        cell.addClass('fill')
+      }
+      row.append(cell)
     }
-    
-    // Set the baseline
-    var baseline = table.parent().find('.baseline');
-    baseline.css("top", ((maxBaseline + 1) * 12) + "px");
+    table.append(row)
+  }
+
+  // Set the baseline
+  var baseline = table.parent().find('.baseline')
+  baseline.css('top', ((maxBaseline + 1) * 12) + 'px')
 }
 
-function updatePixels(table, newWidth, newHeight)
-{
-    var width = parseInt(table.attr("data-w"));
-    var height = parseInt(table.attr("data-h"));
-	
-	if (newWidth < 0) {
-		newWidth = width;
-	}
-	
-	if (newHeight < 0) {
-		newHeight = height;
-	}
-	
-	// Extract the pixel values from the table
-	var pixels = "";
-    table.find("td").each(function() {
-		if (!$(this).hasClass('dead')) {
-			pixels += $(this).hasClass('fill') ? "1" : "0";
-		}
-	});
-	
-	// Store the pixels into a 2D bool array
-	var array = [ ];
-	for (var i = 0; i < height; ++i) {
-		var rowArray = [ ];
-		for (var j = 0; j < width; ++j) {
-			rowArray.push((pixels.charAt(i * width + j) == '1') ? true : false);
-		}
-		array.push(rowArray);
-	}
-	
-	// Write out to a string newWidth x newHeight
-	var newPixels = "";
-	for (var i = 0; i < newHeight; ++i) {
-		for (var j = 0; j < newWidth; ++j) {
-			if (i >= height || j >= width) {
-				newPixels += "0";
-			} else {
-				newPixels += array[i][j] ? "1" : "0";
-			}
-		}
-	}
-	
-	// Pad out to a multiple of 8
-	var pad = newPixels.length % 8;
-	for (var i = 0; i < pad; ++i) {
-		newPixels += "0";
-	}
-	
-    table.attr('data-pixels', newPixels);	
+function updatePixels (table, newWidth, newHeight) {
+  var width = parseInt(table.attr('data-w'))
+  var height = parseInt(table.attr('data-h'))
+
+  if (newWidth < 0) {
+    newWidth = width
+  }
+
+  if (newHeight < 0) {
+    newHeight = height
+  }
+
+  // Extract the pixel values from the table
+  var pixels = ''
+  table.find('td').each(function () {
+    if (!$(this).hasClass('dead')) {
+      pixels += $(this).hasClass('fill') ? '1' : '0'
+    }
+  })
+
+  // Store the pixels into a 2D bool array
+  var array = [ ]
+  for (var i = 0; i < height; ++i) {
+    var rowArray = [ ]
+    for (var j = 0; j < width; ++j) {
+      rowArray.push((pixels.charAt(i * width + j) == '1'))
+    }
+    array.push(rowArray)
+  }
+
+  // Write out to a string newWidth x newHeight
+  var newPixels = ''
+  for (var i = 0; i < newHeight; ++i) {
+    for (var j = 0; j < newWidth; ++j) {
+      if (i >= height || j >= width) {
+        newPixels += '0'
+      } else {
+        newPixels += array[i][j] ? '1' : '0'
+      }
+    }
+  }
+
+  // Pad out to a multiple of 8
+  var pad = newPixels.length % 8
+  for (var i = 0; i < pad; ++i) {
+    newPixels += '0'
+  }
+
+  table.attr('data-pixels', newPixels)
 }
 
-$(document).ready(function(){
+$(document).ready(function () {
+  window['name'] = null
+  window['last_part'] = null
 
-    window["name"] = null;
-    window["last_part"] = null;
+  $('#extract').click(function () {
+    var data = $('#source').val()
 
-    $('#extract').click(function() {
-        var data = $("#source").val();
+    // Extract name
+    var re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
+    var found = data.match(re)
 
-        // Extract name
-        var re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
-        var found = data.match(re);
+    if (found != null && found.length > 1) {
+      window['name'] = found[1]
 
-        if (found != null && found.length > 1) {
-            window["name"] = found[1];
+      var re_size = /([a-zA-Z\_]*)([0-9]+)pt(.*)/
+      var found_size = name.match(re_size)
+      window['size'] = parseInt(found_size[2])
+    } else {
+      alert('No correct font file found, please paste the content of an Adafruit GFX font file first.')
+      return
+    }
 
-            var re_size = /([a-zA-Z\_]*)([0-9]+)pt(.*)/
-            var found_size = name.match(re_size);
-            window["size"] = parseInt(found_size[2]);
-        } else {
-            alert("No correct font file found, please paste the content of an Adafruit GFX font file first.");
-            return;
-        }
+    $('#glyphs').empty()
 
-        $('#glyphs').empty();
+    // extract GFXFont part
+    var last_part_re = /const\ GFXfont([\s\S]*)/g
+    var last_part = data.match(last_part_re)
+    window['last_part'] = last_part[0]
 
-        // extract GFXFont part
-        var last_part_re = /const\ GFXfont([\s\S]*)/g;
-        var last_part = data.match(last_part_re);
-        window["last_part"] = last_part[0];
+    // Get first, last and yOffset
+    var parts = last_part[0].split(',')
+    var number_re = /0[xX][0-9a-fA-F]+|[0-9]+/gi
+    window['first'] = parts[2].match(number_re)[0]
+    window['last'] = parts[3].match(number_re)[0]
+    window['yAdvance'] = parts[4].match(number_re)[0]
 
-        // Get first, last and yOffset
-        var parts = last_part[0].split(",");
-        var number_re = /0[xX][0-9a-fA-F]+|[0-9]+/gi;
-        window["first"] = parts[2].match(number_re)[0];
-        window["last"] = parts[3].match(number_re)[0];
-        window["yAdvance"] = parts[4].match(number_re)[0];
+    data = data.replace(last_part[0], '')
+    data = data.replace(/\{/gi, '[').replace(/\}/gi, ']')
+    data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
 
-        data = data.replace(last_part[0], '');
-        data = data.replace(/\{/gi, '[').replace(/\}/gi, ']');
-        data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '');
+    eval(data)
 
-        eval(data);
-
-        /*
+    /*
         // Tada 🎉
         console.log(window["name"]);
         console.log(window["size"]);
@@ -391,248 +387,246 @@ $(document).ready(function(){
         console.log(window[name + "Glyphs"]);
         */
 
-        $('.fontname').text(window["name"] + " — " + window["size"] + "pt").show();
-        
-        // Space from the baseline to the top of the character cell is determined by the character with the
-        // largest negative yOffset.
-        var maxBaseline = 0;
+    $('.fontname').text(window['name'] + ' — ' + window['size'] + 'pt').show()
 
-        // Display tables
-        for (ind in window[name + "Glyphs"]) {
-            // for each glyph
-            var char = String.fromCharCode(parseInt(window["first"], 16) + parseInt(ind));
-            var w = window[name + "Glyphs"][ind][1];
-            var h = window[name + "Glyphs"][ind][2];
-            var adv = window[name + "Glyphs"][ind][3];
-            var ow = window[name + "Glyphs"][ind][4];
-            var oh = window[name + "Glyphs"][ind][5];
-            var n = "";
-            
-            maxBaseline = Math.max(maxBaseline, -oh);
+    // Space from the baseline to the top of the character cell is determined by the character with the
+    // largest negative yOffset.
+    var maxBaseline = 0
 
-            // extract numbers
-            currentOffset = window[name + "Glyphs"][parseInt(ind)][0];
-            if (parseInt(ind) + 1 < window[name + "Glyphs"].length) {
-                nextOffset = window[name + "Glyphs"][parseInt(ind)+1][0];
-            } else {
-                nextOffset = window[name + "Bitmaps"].length;
-            }
-            for (var k = 0; k < (nextOffset - currentOffset); k++) {
-                n += ("000000000" + window[name + "Bitmaps"][currentOffset + k].toString(2)).substr(-8);
-            }
+    // Display tables
+    for (ind in window[name + 'Glyphs']) {
+      // for each glyph
+      var char = String.fromCharCode(parseInt(window['first'], 16) + parseInt(ind))
+      var w = window[name + 'Glyphs'][ind][1]
+      var h = window[name + 'Glyphs'][ind][2]
+      var adv = window[name + 'Glyphs'][ind][3]
+      var ow = window[name + 'Glyphs'][ind][4]
+      var oh = window[name + 'Glyphs'][ind][5]
+      var n = ''
 
-            var table = $('<table cellspacing="1"></table>')
-                        .addClass('glyph')
-                        .attr('data-pixels', n)
-                        .attr('data-w', w)
-                        .attr('data-h', h)
-                        .attr('data-char', char)
-                        .attr('data-adv', adv)
-                        .attr('data-ow', ow)
-                        .attr('data-oh', oh);
+      maxBaseline = Math.max(maxBaseline, -oh)
 
-            if (window['size'] <= 10) {
-                column_w = "two";
-            } else if (window['size'] <= 18) {
-                column_w = "four";
-            } else {
-                column_w = "six";
-            }
+      // extract numbers
+      currentOffset = window[name + 'Glyphs'][parseInt(ind)][0]
+      if (parseInt(ind) + 1 < window[name + 'Glyphs'].length) {
+        nextOffset = window[name + 'Glyphs'][parseInt(ind) + 1][0]
+      } else {
+        nextOffset = window[name + 'Bitmaps'].length
+      }
+      for (var k = 0; k < (nextOffset - currentOffset); k++) {
+        n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
+      }
 
-            var grid = $('<div class="' + column_w + ' wide column"></div>');
-            var div = $('<div class="ui attached segment inner"></div>');
+      var table = $('<table cellspacing="1"></table>')
+        .addClass('glyph')
+        .attr('data-pixels', n)
+        .attr('data-w', w)
+        .attr('data-h', h)
+        .attr('data-char', char)
+        .attr('data-adv', adv)
+        .attr('data-ow', ow)
+        .attr('data-oh', oh)
 
-            div.append(table);
-            div.append('<div class="baseline"></div>');
+      if (window['size'] <= 10) {
+        column_w = 'two'
+      } else if (window['size'] <= 18) {
+        column_w = 'four'
+      } else {
+        column_w = 'six'
+      }
 
-            if (char == " ") {
-                grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>');
-            } else {
-                grid.append('<h2 class="ui top attached segment inner">' + char + '</h2>');
-            }
+      var grid = $('<div class="' + column_w + ' wide column"></div>')
+      var div = $('<div class="ui attached segment inner"></div>')
 
-            grid.append('<div class="ui attached segment inner secondary">' + "0x" + (parseInt(window["first"], 16) + parseInt(ind)).toString(16).toUpperCase() + '</div>');
-            grid.append(div);
-             
-            var buttonBar = $('<div class="ui bottom attached warning message inner"></div>');
-            buttonBar.append(makeUpDownButton("Rows", "row", "purple", 50));
-            buttonBar.append(makeUpDownButton("Cols", "col", "violet", 50));
-            buttonBar.append(makeUpDownButton("Base", "base", "green", 50));
-            buttonBar.append(makeUpDownButton("XOff", "xoff", "blue", 50));
-            buttonBar.append(makeUpDownButton("XAdv", "xadv", "teal", 50));
-            
-            grid.append(buttonBar);
+      div.append(table)
+      div.append('<div class="baseline"></div>')
 
-            $('#glyphs').append(grid);
+      if (char == ' ') {
+        grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>')
+      } else {
+        grid.append('<h2 class="ui top attached segment inner">' + char + '</h2>')
+      }
+
+      grid.append('<div class="ui attached segment inner secondary">' + '0x' + (parseInt(window['first'], 16) + parseInt(ind)).toString(16).toUpperCase() + '</div>')
+      grid.append(div)
+
+      var buttonBar = $('<div class="ui bottom attached warning message inner"></div>')
+      buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
+      buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
+      buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
+      buttonBar.append(makeUpDownButton('XOff', 'xoff', 'blue', 50))
+      buttonBar.append(makeUpDownButton('XAdv', 'xadv', 'teal', 50))
+
+      grid.append(buttonBar)
+
+      $('#glyphs').append(grid)
+    }
+
+    window['maxBaseline'] = maxBaseline
+
+    $('#glyphs').children().each(function () {
+      setGlyphTable($(this).children().find('.glyph'))
+    })
+  })
+
+  $(document).on('click', '.cell', function (e) {
+    $(e.target).toggleClass('fill')
+    var table = $(e.target).parent().parent().parent().find('table.glyph')
+    updatePixels(table, -1, -1)
+  })
+
+  $(document).on('click', '.row-handler', function (e) {
+    var targetID = $(e.target).attr('id')
+    var table = $(e.target).parent().parent().parent().find('table.glyph')
+    var height = parseInt(table.attr('data-h'))
+
+    if (targetID == 'row-add') {
+      height++
+    } else if (targetID == 'row-remove') {
+      height--
+    }
+
+    updatePixels(table, -1, height)
+    table.attr('data-h', height)
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('click', '.col-handler', function (e) {
+    var targetID = $(e.target).attr('id')
+    var table = $(e.target).parent().parent().parent().find('table.glyph')
+    var width = parseInt(table.attr('data-w'))
+
+    if (targetID == 'col-add') {
+      width++
+    } else if (targetID == 'col-remove') {
+      width--
+    }
+
+    updatePixels(table, width, -1)
+    table.attr('data-w', width)
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('click', '.base-handler', function (e) {
+    var targetID = $(e.target).attr('id')
+    var table = $(e.target).parent().parent().parent().find('table.glyph')
+    if (targetID == 'base-add') {
+      table.attr('data-oh', parseInt(table.attr('data-oh')) + 1)
+    } else if (targetID == 'base-remove') {
+      table.attr('data-oh', parseInt(table.attr('data-oh')) - 1)
+    }
+
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('click', '.xadv-handler', function (e) {
+    var targetID = $(e.target).attr('id')
+    var table = $(e.target).parent().parent().parent().find('table.glyph')
+    if (targetID == 'xadv-add') {
+      table.attr('data-adv', parseInt(table.attr('data-adv')) + 1)
+    } else if (targetID == 'xadv-remove') {
+      table.attr('data-adv', parseInt(table.attr('data-adv')) - 1)
+    }
+
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('click', '.xoff-handler', function (e) {
+    var targetID = $(e.target).attr('id')
+    var table = $(e.target).parent().parent().parent().find('table.glyph')
+    if (targetID == 'xoff-add') {
+      table.attr('data-ow', parseInt(table.attr('data-ow')) + 1)
+    } else if (targetID == 'xoff-remove') {
+      table.attr('data-ow', parseInt(table.attr('data-ow')) - 1)
+    }
+
+    setGlyphTable(table)
+    return false
+  })
+
+  $('#export').click(function () {
+    var glyphs = []
+    var bitsArray = []
+    var offset = 0
+    var isFirstCharacter = true
+
+    $('table.glyph').each(function () {
+      var t = $(this)
+      bits = ''
+
+      $(this).find('td').each(function () {
+        var e = $(this)
+        if (!e.hasClass('dead')) {
+          var ON = e.hasClass('fill') ? '1' : '0'
+          bits += ON
+
+          // Each 8 bits, we form the HEX value
+          if (bits.length == 8) {
+            bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
+            bits = ''
+          }
         }
-        
-        window["maxBaseline"] = maxBaseline;
-		
-	    $('#glyphs').children().each(function() {
-        	setGlyphTable($(this).children().find('.glyph'));
-		});
-    });
+      })
 
-    $(document).on('click', ".cell", function(e) {
-        $(e.target).toggleClass('fill');
-      	var table = $(e.target).parent().parent().parent().find('table.glyph');
-		updatePixels(table, -1, -1);
-    });
+      // Remaining bits with padding then, if necessary
+      if (bits != '') {
+        bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
+      }
 
-    $(document).on('click', ".row-handler", function(e) {
-      	var targetID = $(e.target).attr("id");
-      	var table = $(e.target).parent().parent().parent().find('table.glyph');
-		var height = parseInt(table.attr('data-h'));
-      
-      	if (targetID == "row-add") {
-			height++
-      	} else if (targetID == "row-remove") {
-			height--;
-		}
-		
-		updatePixels(table, -1, height);
-        table.attr('data-h', height);
-        setGlyphTable(table);
-      	return false;
-    });
+      var isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset < window[name + 'Bitmaps'].length
 
-    $(document).on('click', ".col-handler", function(e) {
-        var targetID = $(e.target).attr("id");
-        var table = $(e.target).parent().parent().parent().find('table.glyph');
-		var width = parseInt(table.attr('data-w'));
- 
-        if (targetID == "col-add") {
-            width++;
-        } else if (targetID == "col-remove") {
-            width--;
-        }
+      glyphs.push(
+        ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+                ('     ' + offset).slice(-5) + ', ' +
+                ('   ' + parseInt(t.attr('data-w'))).slice(-3) + ', ' +
+                ('   ' + parseInt(t.attr('data-h'))).slice(-3) + ', ' +
+                ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
+                ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
+                ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
+                "// '" + t.attr('data-char') + "'")
 
-		updatePixels(table, width, -1);
-        table.attr('data-w', width);
-        setGlyphTable(table);
-        return false;
-    });
+      offset = bitsArray.length
+      isFirstCharacter = false
+    })
 
-    $(document).on('click', ".base-handler", function(e) {
-        var targetID = $(e.target).attr("id");
-        var table = $(e.target).parent().parent().parent().find('table.glyph');
-        if (targetID == "base-add") {
-          table.attr('data-oh', parseInt(table.attr('data-oh')) + 1);
-        } else if (targetID == "base-remove") {
-          table.attr('data-oh', parseInt(table.attr('data-oh')) - 1);
-        }
+    // Bitmaps
+    var bitmapsOutput = 'const uint8_t ' + name + 'Bitmaps[] PROGMEM = {\n'
+    // We want to join per 12 words
+    var limit = Math.floor(bitsArray.length / 12)
+    for (nb = 0; nb < limit; nb++) {
+      var isLastLine = (limit * 12 == bitsArray.length) && (nb == limit - 1)
 
-        setGlyphTable(table);
-        return false;
-    });
+      bitmapsOutput += '  ' + bitsArray[nb * 12] + ', ' +
+                                  bitsArray[nb * 12 + 1] + ', ' +
+                                  bitsArray[nb * 12 + 2] + ', ' +
+                                  bitsArray[nb * 12 + 3] + ', ' +
+                                  bitsArray[nb * 12 + 4] + ', ' +
+                                  bitsArray[nb * 12 + 5] + ', ' +
+                                  bitsArray[nb * 12 + 6] + ', ' +
+                                  bitsArray[nb * 12 + 7] + ', ' +
+                                  bitsArray[nb * 12 + 8] + ', ' +
+                                  bitsArray[nb * 12 + 9] + ', ' +
+                                  bitsArray[nb * 12 + 10] + ', ' +
+                                  bitsArray[nb * 12 + 11] + (isLastLine ? '' : ',') + ' \n'
+    }
 
-    $(document).on('click', ".xadv-handler", function(e) {
-		var targetID = $(e.target).attr("id");
-		var table = $(e.target).parent().parent().parent().find('table.glyph');
-		if (targetID == "xadv-add") {
-			table.attr('data-adv', parseInt(table.attr('data-adv')) + 1);
-		} else if (targetID == "xadv-remove") {
-			table.attr('data-adv', parseInt(table.attr('data-adv')) - 1);
-		}
+    if (limit * 12 != bitsArray.length) {
+      bitmapsOutput += '  ' + bitsArray.slice(-(bitsArray.length - limit * 12)).join(', ') + '\n'
+    }
+    bitmapsOutput += '};\n\n'
 
-        setGlyphTable(table);
-        return false;
-    });
+    // Glyphs
+    var glyphsOutput = 'const GFXglyph ' + name + 'Glyphs[] PROGMEM = {\n'
+    glyphsOutput += glyphs.join('\n') + '\n};\n\n'
 
-    $(document).on('click', ".xoff-handler", function(e) {
-        var targetID = $(e.target).attr("id");
-        var table = $(e.target).parent().parent().parent().find('table.glyph');
-        if (targetID == "xoff-add") {
-          	table.attr('data-ow', parseInt(table.attr('data-ow')) + 1);
-        } else if (targetID == "xoff-remove") {
-          	table.attr('data-ow', parseInt(table.attr('data-ow')) - 1);
-        }
-
-        setGlyphTable(table);
-        return false;
-    });
-
-    $('#export').click(function() {
-
-        var glyphs = [];
-        var bitsArray = [];
-        var offset = 0;
-		var isFirstCharacter = true;
-
-        $("table.glyph").each(function() {
-            var t = $(this);
-            bits = "";
-
-            $(this).find("td").each(function() {
-                var e = $(this);
-				if (!e.hasClass('dead')) {
-                	var ON = e.hasClass('fill')?"1":"0";
-                	bits += ON;
-
-                	// Each 8 bits, we form the HEX value
-                	if (bits.length == 8) {
-                    	bitsArray.push("0x" + ("00" + parseInt((bits + "00000000").slice(0, 8), 2).toString(16).toUpperCase()).slice(-2));
-                    	bits = "";
-                	}
-				}
-            });
-
-            // Remaining bits with padding then, if necessary
-            if (bits != "") {
-                bitsArray.push("0x" + ("00" + parseInt((bits + "00000000").slice(0, 8), 2).toString(16).toUpperCase()).slice(-2));
-            }
-
-            var isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h'))/8) + offset < window[name + "Bitmaps"].length;
-
-            glyphs.push(
-                " " + (isFirstCharacter ? " " : ",") + "{ " +
-                ("     " + offset).slice(-5) + ", " +
-                ("   " + parseInt(t.attr('data-w'))).slice(-3) + ", " +
-                ("   " + parseInt(t.attr('data-h'))).slice(-3) + ", " +
-                ("   " + parseInt(t.attr('data-adv'))).slice(-3) + ", " +
-                ("    " + parseInt(t.attr('data-ow'))).slice(-4) + ", " +
-                ("    " + parseInt(t.attr('data-oh'))).slice(-4) + " }   " +
-                "// '" + t.attr('data-char') + "'");
-
-            offset = bitsArray.length;
-			isFirstCharacter = false
-        });
-
-        // Bitmaps
-        var bitmapsOutput = "const uint8_t " + name + "Bitmaps[] PROGMEM = {\n";
-        // We want to join per 12 words
-        var limit = Math.floor(bitsArray.length / 12);
-        for (nb = 0; nb < limit; nb++) {
-
-            var isLastLine = (limit*12 == bitsArray.length) && (nb == limit -1);
-
-            bitmapsOutput += "  " + bitsArray[nb*12] + ", "
-                                  + bitsArray[nb*12+1] + ", "
-                                  + bitsArray[nb*12+2] + ", "
-                                  + bitsArray[nb*12+3] + ", "
-                                  + bitsArray[nb*12+4] + ", "
-                                  + bitsArray[nb*12+5] + ", "
-                                  + bitsArray[nb*12+6] + ", "
-                                  + bitsArray[nb*12+7] + ", "
-                                  + bitsArray[nb*12+8] + ", "
-                                  + bitsArray[nb*12+9] + ", "
-                                  + bitsArray[nb*12+10] + ", "
-                                  + bitsArray[nb*12+11] + (isLastLine?"":",") + " \n";
-        }
-        if (limit*12 != bitsArray.length) {
-            bitmapsOutput += "  " + bitsArray.slice(-(bitsArray.length - limit*12)).join(", ") + "\n";
-        }
-        bitmapsOutput += "};\n\n";
-
-        // Glyphs
-        var glyphsOutput = "const GFXglyph " + name + "Glyphs[] PROGMEM = {\n";
-        glyphsOutput += glyphs.join('\n') + "\n};\n\n";
-
-        data = bitmapsOutput + glyphsOutput + window["last_part"];
-        $("#result").val(data);
-
-    });
-});
+    data = bitmapsOutput + glyphsOutput + window['last_part']
+    $('#result').val(data)
+  })
+})
 
 </script>
 </html>
