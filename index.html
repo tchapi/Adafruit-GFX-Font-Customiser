@@ -14,8 +14,9 @@
         font-size: 0.9em !important;
     }
     #glyphs div.inner {
-        padding: 0.5em;
+        padding: 10px;
         text-align: center;
+        position: relative;
     }
     #glyphs h2.inner {
         font-size: 2em;
@@ -280,7 +281,7 @@ function setGlyphTable (table) {
 
   // Set the baseline
   var baseline = table.parent().find('.baseline')
-  baseline.css('top', ((maxBaseline + 1) * 12) + 'px')
+  baseline.css('top', (10 + (maxBaseline + 1) * 11) + 'px')
 }
 
 function updatePixels (table, newWidth, newHeight) {
