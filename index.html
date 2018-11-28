@@ -209,7 +209,7 @@ $(document).ready(function () {
     if (found != null && found.length > 1) {
       window['name'] = found[1]
 
-      var re_size = /([a-zA-Z\_]*)([0-9]+)pt(.*)/
+      var re_size = /([a-zA-Z\_]*)([0-9]+)(.*)/
       var found_size = name.match(re_size)
       window['size'] = parseInt(found_size[2])
     } else {
