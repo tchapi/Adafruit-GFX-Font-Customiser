@@ -150,11 +150,8 @@ function updatePixels (table, newWidth, newHeight, x, y, fill) {
   var height = parseInt(table.attr('data-h'))
   var xoff = parseInt(table.attr('data-ow'))
   var base = parseInt(table.attr('data-oh'))
-  var xAdjust = 0
+  var xAdjust = xoff * -1;
   var yAdjust = (window['maxBaseline'] + base) * -1;
-  
-  if(xoff < 0)
-    xAdjust = xoff * -1;
 	
   if (newWidth < 0)
     newWidth = width
