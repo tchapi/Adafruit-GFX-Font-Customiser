@@ -128,7 +128,7 @@ function setGlyphTable (table) {
   for (var i = 0; i < yadvance; i++) {
     var row = $('<tr></tr>')
     for (var j = 0; j < xadvance; j++) {
-      var cell = $('<td></td>').addClass('cell')
+      var cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i) 
       if (i < top || i >= bottom || j < left || j >= right) {
         cell.addClass('dead')
       } else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
@@ -144,18 +144,29 @@ function setGlyphTable (table) {
   baseline.css('top', (10 + (maxBaseline + 1) * 11) + 'px')
 }
 
-function updatePixels (table, newWidth, newHeight) {
+function updatePixels (table, newWidth, newHeight, x, y, fill) {
+  var dataPixels = table.attr('data-pixels')
   var width = parseInt(table.attr('data-w'))
   var height = parseInt(table.attr('data-h'))
-
-  if (newWidth < 0) {
+  var xoff = parseInt(table.attr('data-ow'))
+  var base = parseInt(table.attr('data-oh'))
+  var xAdjust = 0
+  var yAdjust = (window['maxBaseline'] + base) * -1;
+  
+  if(xoff < 0)
+    xAdjust = xoff * -1;
+	
+  if (newWidth < 0)
     newWidth = width
-  }
-
-  if (newHeight < 0) {
+  
+  if (newHeight < 0)
     newHeight = height
-  }
 
+  if(x >= 0 && y >= 0)
+  {
+     x += xAdjust
+	 y += yAdjust
+  }
   // Extract the pixel values from the table
   var pixels = ''
   table.find('td').each(function () {
@@ -166,13 +177,22 @@ function updatePixels (table, newWidth, newHeight) {
 
   // Store the pixels into a 2D bool array
   var array = [ ]
+  var pixelIndex = 0
   for (var i = 0; i < height; ++i) {
     var rowArray = [ ]
     for (var j = 0; j < width; ++j) {
-      rowArray.push((pixels.charAt(i * width + j) == '1'))
+	  if(x == j && y == i)
+	  {
+	    rowArray.push(fill)
+	  }
+	  else
+        rowArray.push(dataPixels.charAt(pixelIndex))
+	  ++pixelIndex
     }
-    array.push(rowArray)
+	array.push(rowArray)
+	
   }
+
 
   // Write out to a string newWidth x newHeight
   var newPixels = ''
@@ -181,7 +201,7 @@ function updatePixels (table, newWidth, newHeight) {
       if (i >= height || j >= width) {
         newPixels += '0'
       } else {
-        newPixels += array[i][j] ? '1' : '0'
+        newPixels += array[i][j]
       }
     }
   }
@@ -238,7 +258,7 @@ $(document).ready(function () {
     eval(data)
 
     /*
-        // Tada 🎉
+        // Tada ??
         console.log(window["name"]);
         console.log(window["size"]);
         console.log(window["first"]);
@@ -248,7 +268,7 @@ $(document).ready(function () {
         console.log(window[name + "Glyphs"]);
         */
 
-    $('.fontname').text(window['name'] + ' — ' + window['size'] + 'pt').show()
+    $('.fontname').text(window['name'] + ' - ' + window['size'] + 'pt').show()
 
     // Space from the baseline to the top of the character cell is determined by the character with the
     // largest negative yOffset.
@@ -331,9 +351,14 @@ $(document).ready(function () {
   })
 
   $(document).on('click', '.cell', function (e) {
-    $(e.target).toggleClass('fill')
-    var table = $(e.target).parent().parent().parent().find('table.glyph')
-    updatePixels(table, -1, -1)
+	var target = $(e.target);
+    target.toggleClass('fill')
+	var fill = '0'
+	if(target.hasClass('fill'))
+	  fill = '1'
+	  
+    var table = target.parent().parent().parent().find('table.glyph')
+    updatePixels(table, -1, -1, parseInt(target.attr('data-x')), parseInt(target.attr('data-y')), fill)
   })
 
   $(document).on('click', '.row-handler', function (e) {
@@ -347,7 +372,7 @@ $(document).ready(function () {
       height--
     }
 
-    updatePixels(table, -1, height)
+    updatePixels(table, -1, height, -1, -1, false)
     table.attr('data-h', height)
     setGlyphTable(table)
     return false
@@ -364,7 +389,7 @@ $(document).ready(function () {
       width--
     }
 
-    updatePixels(table, width, -1)
+    updatePixels(table, width, -1, -1, -1, false)
     table.attr('data-w', width)
     setGlyphTable(table)
     return false
@@ -418,20 +443,16 @@ $(document).ready(function () {
     $('table.glyph').each(function () {
       var t = $(this)
       bits = ''
-
-      $(this).find('td').each(function () {
-        var e = $(this)
-        if (!e.hasClass('dead')) {
-          var ON = e.hasClass('fill') ? '1' : '0'
-          bits += ON
-
-          // Each 8 bits, we form the HEX value
-          if (bits.length == 8) {
-            bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
-            bits = ''
-          }
+	  var dataPixels = $(this).attr('data-pixels')
+	  
+	  for (var i=0; i < dataPixels.length; i++) {
+	    bits += dataPixels.charAt(i)
+		// Each 8 bits, we form the HEX value
+		if (bits.length == 8) {
+          bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
+          bits = ''
         }
-      })
+	  }
 
       // Remaining bits with padding then, if necessary
       if (bits != '') {
