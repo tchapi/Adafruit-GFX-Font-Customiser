@@ -165,13 +165,6 @@ function updatePixels (table, newWidth, newHeight, x, y, fill) {
     x += xAdjust
     y += yAdjust
   }
-  // Extract the pixel values from the table
-  var pixels = ''
-  table.find('td').each(function () {
-    if (!$(this).hasClass('dead')) {
-      pixels += $(this).hasClass('fill') ? '1' : '0'
-    }
-  })
 
   // Store the pixels into a 2D bool array
   var array = [ ]
