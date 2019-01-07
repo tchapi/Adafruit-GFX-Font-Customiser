@@ -128,7 +128,7 @@ function setGlyphTable (table) {
   for (var i = 0; i < yadvance; i++) {
     var row = $('<tr></tr>')
     for (var j = 0; j < xadvance; j++) {
-      var cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i) 
+      var cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i)
       if (i < top || i >= bottom || j < left || j >= right) {
         cell.addClass('dead')
       } else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
@@ -428,17 +428,17 @@ $(document).ready(function () {
 
     $('table.glyph').each(function () {
       var t = $(this)
-      bits = ''
+      var bits = ''
       var dataPixels = $(this).attr('data-pixels')
-	  
-	    for (var i=0; i < dataPixels.length; i++) {
-	      bits += dataPixels.charAt(i)
-		    // Each 8 bits, we form the HEX value
+
+      for (var i=0; i < dataPixels.length; i++) {
+        bits += dataPixels.charAt(i)
+        // Each 8 bits, we form the HEX value
         if (bits.length == 8) {
           bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
           bits = ''
         }
-	    }
+      }
 
       // Remaining bits with padding then, if necessary
       if (bits != '') {
