@@ -8,38 +8,38 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.2.13/dist/semantic.min.css">
   <style>
     html, body {
-        margin: 10px;
+      margin: 0 10px;
     }
     textarea {
-        font-family: "Courier", monotype;
-        font-size: 0.9em !important;
+      font-family: "Courier", monotype;
+      font-size: 0.9em !important;
     }
     #glyphs div.inner {
-        padding: 10px;
-        text-align: center;
-        position: relative;
+      padding: 10px;
+      text-align: center;
+      position: relative;
     }
     #glyphs h2.inner {
-        font-size: 2em;
-        padding: 0.3em;
-        text-align: center;
+      font-size: 2em;
+      padding: 0.3em;
+      text-align: center;
     }
     #glyphs table {
-        border: 1px solid black;
-        margin: auto;
+      border: 1px solid black;
+      margin: auto;
     }
     #glyphs table tr {
-        height: 10px;
+      height: 10px;
     }
     #glyphs table td {
-        border: 1px solid lightgrey;
-        width: 10px;
+      border: 1px solid lightgrey;
+      width: 10px;
     }
     #glyphs table td.cell.fill {
-        background: black;
+      background: black;
     }
     #glyphs table td.cell.dead {
-        background: lightgrey;
+      background: lightgrey;
     }
     .baseline {
       position:absolute;
@@ -53,45 +53,43 @@
    </style>
 </head>
 <body>
-    <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+  <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
 
-    <h1 class="ui header">Adafruit GFX Pixel font customiser</h1>
-    <p><em>Created by
-    <a href="https://github.com/tchapi">tchapi</a>, major improvements by <a href="https://github.com/cmarrin">cmarrin</a> - Source code available on
-    <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em>
+  <h1 class="ui header">Adafruit GFX Pixel font customiser</h1>
+  <p>
+    <em>Created by <a href="https://github.com/tchapi">tchapi</a>, major improvements by <a href="https://github.com/cmarrin">cmarrin</a> - Source code available on <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em>
   </p>
 
-    <div class="ui divider"></div>
+  <div class="ui divider"></div>
 
-    <div class="ui grid">
-        <div class="eight wide column">
-            <div class="ui teal segment">
-                <div class="ui form">
-                  <div class="field">
-                    <label>Original font file <em class="fontname" style="display: none;">FontName unknown</em></label>
-                    <textarea id="source"></textarea>
-                  </div>
-                    <button class="ui button teal" id="extract">Extract</button>
-                </div>
-            </div>
+  <div class="ui grid">
+    <div class="eight wide column">
+      <div class="ui teal segment">
+        <div class="ui form">
+          <div class="field">
+            <label>Original font file <em class="fontname" style="display: none;">FontName unknown</em></label>
+            <textarea id="source"></textarea>
+          </div>
+            <button class="ui button teal" id="extract">Extract</button>
         </div>
-
-        <div class="eight wide column">
-            <div class="ui green segment" id="resultWrapper">
-                <div class="ui form">
-                    <div class="field">
-                        <label>Output</label>
-                        <textarea id="result" readonly></textarea>
-                    </div>
-                    <button class="ui button green" id="export">Process and create file</button>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
 
-    <h2 class="ui header">Separate glyphs</h2>
-    <div id="glyphs" class="ui grid"><em>Please paste the content of a font file first</em></div>
+    <div class="eight wide column">
+      <div class="ui green segment" id="resultWrapper">
+        <div class="ui form">
+          <div class="field">
+            <label>Output</label>
+            <textarea id="result" readonly></textarea>
+          </div>
+          <button class="ui button green" id="export">Process and create file</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
+  <h2 class="ui header">Separate glyphs</h2>
+  <div id="glyphs" class="ui grid"><em>Please paste the content of a font file first</em></div>
 </body>
 <script>
 
