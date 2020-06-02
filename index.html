@@ -38,6 +38,9 @@
     #glyphs table td.cell.fill {
       background: black;
     }
+    #glyphs table td.cell.fill.over {
+      box-shadow: 0 0 6px red inset;
+    }
     #glyphs table td.cell.dead {
       background: lightgrey;
     }
@@ -125,12 +128,15 @@ function setGlyphTable (table) {
   table.empty()
   for (var i = 0; i < yadvance; i++) {
     var row = $('<tr></tr>')
-    for (var j = 0; j < xadvance; j++) {
+    for (var j = Math.min(0, xoffset); j < xadvance + Math.max(0, xoffset); j++) {
       var cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i)
       if (i < top || i >= bottom || j < left || j >= right) {
         cell.addClass('dead')
       } else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
         cell.addClass('fill')
+        if (j >= xadvance || j < Math.max(0, xoffset)) {
+          cell.addClass('over')
+        }
       }
       row.append(cell)
     }
