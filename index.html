@@ -255,7 +255,7 @@ $(document).ready(function () {
 
     const glyphsArray = window[name + 'Glyphs']
 
-    // Calculate the average yAdv to scale the table columns for the glyphs
+    // Calculate the max yAdv to scale the table columns for the glyphs
     let maxYAdv = 0
     for (ind in glyphsArray) {
       maxYAdv = Math.max(maxYAdv, glyphsArray[ind][3])
