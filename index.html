@@ -215,10 +215,6 @@ $(document).ready(function () {
 
     if (found != null && found.length > 1) {
       window['name'] = found[1]
-
-      var re_size = /([a-zA-Z\_]*)([0-9]+)(.*)/
-      var found_size = name.match(re_size)
-      window['size'] = parseInt(found_size[2])
     } else {
       alert('No correct font file found, please paste the content of an Adafruit GFX font file first.')
       return
@@ -255,29 +251,44 @@ $(document).ready(function () {
         console.log(window[name + "Glyphs"]);
         */
 
-    $('.fontname').text(window['name'] + ' — ' + window['size'] + 'pt').show()
+    $('.fontname').text(window['name']).show()
+
+    const glyphsArray = window[name + 'Glyphs']
+
+    // Calculate the average yAdv to scale the table columns for the glyphs
+    let maxYAdv = 0
+    for (ind in glyphsArray) {
+      maxYAdv = Math.max(maxYAdv, glyphsArray[ind][3])
+    }
+
+    let column_w = 'six'
+    if (maxYAdv <= 10) {
+      column_w = 'two'
+    } else if (maxYAdv <= 18) {
+      column_w = 'four'
+    }
 
     // Space from the baseline to the top of the character cell is determined by the character with the
     // largest negative yOffset.
     var maxBaseline = 0
 
     // Display tables
-    for (ind in window[name + 'Glyphs']) {
+    for (ind in glyphsArray) {
       // for each glyph
       var char = String.fromCharCode(parseInt(window['first'], 16) + parseInt(ind))
-      var w = window[name + 'Glyphs'][ind][1]
-      var h = window[name + 'Glyphs'][ind][2]
-      var adv = window[name + 'Glyphs'][ind][3]
-      var ow = window[name + 'Glyphs'][ind][4]
-      var oh = window[name + 'Glyphs'][ind][5]
+      var w = glyphsArray[ind][1]
+      var h = glyphsArray[ind][2]
+      var adv = glyphsArray[ind][3]
+      var ow = glyphsArray[ind][4]
+      var oh = glyphsArray[ind][5]
       var n = ''
 
       maxBaseline = Math.max(maxBaseline, -oh)
 
       // extract numbers
-      currentOffset = window[name + 'Glyphs'][parseInt(ind)][0]
-      if (parseInt(ind) + 1 < window[name + 'Glyphs'].length) {
-        nextOffset = window[name + 'Glyphs'][parseInt(ind) + 1][0]
+      currentOffset = glyphsArray[parseInt(ind)][0]
+      if (parseInt(ind) + 1 < glyphsArray.length) {
+        nextOffset = glyphsArray[parseInt(ind) + 1][0]
       } else {
         nextOffset = window[name + 'Bitmaps'].length
       }
@@ -294,14 +305,6 @@ $(document).ready(function () {
         .attr('data-adv', adv)
         .attr('data-ow', ow)
         .attr('data-oh', oh)
-
-      if (window['size'] <= 10) {
-        column_w = 'two'
-      } else if (window['size'] <= 18) {
-        column_w = 'four'
-      } else {
-        column_w = 'six'
-      }
 
       var grid = $('<div class="' + column_w + ' wide column"></div>')
       var div = $('<div class="ui attached segment inner"></div>')
