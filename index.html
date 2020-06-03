@@ -45,7 +45,38 @@
       box-shadow: 0 0 9px #D00 inset;
     }
     #glyphs table td.cell.dead {
-      background: lightgrey;
+      background: #DDD;
+    }
+    #loader {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      font-weight: bold;
+      font-size: 2em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+    }
+    .advance-wrapper {
+      width: 300px;
+      position: relative;
+      border: 1px solid lightgray;
+      height: 30px;
+      margin-bottom: 20px;
+    }
+    .advance {
+      opacity: 0.7;
+      background: white;
+      width: 10px;
+      height: 24px;
+      margin: 2px;
     }
     .baseline {
       position:absolute;
@@ -104,6 +135,10 @@
   </div>
 
   <h2 class="ui header">Separate glyphs</h2>
+  <div id="loader">
+    <div class="advance-wrapper"><div class="advance"></div></div>
+    <span>Loading and extracting font ...</span>
+  </div>
   <div id="glyphs" class="ui grid"><em>Please paste the content of a font file first</em></div>
 </body>
 <script>
@@ -238,143 +273,183 @@ function updatePixels (table, newWidth, newHeight, x, y, fill) {
   table.attr('data-pixels', newPixels)
 }
 
+function advanceLoading (percent) {
+  const element = document.querySelector('#loader .advance');
+  element.style.width = Math.floor(294 * percent)
+}
+
+function extractFont () {
+  var data = $('#source').val()
+
+  // Extract name
+  var re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
+  var found = data.match(re)
+
+  if (found != null && found.length > 1) {
+    window['name'] = found[1]
+  } else {
+    alert('No correct font file found, please paste the content of an Adafruit GFX font file first.')
+    $("#loader").hide()
+    return
+  }
+
+  $('#glyphs').empty()
+
+  // extract GFXFont part
+  var last_part_re = /const\ GFXfont([\s\S]*)/g
+  var last_part = data.match(last_part_re)
+  window['last_part'] = last_part[0]
+
+  // Get first, last and yOffset
+  var parts = last_part[0].split(',')
+  var number_re = /0[xX][0-9a-fA-F]+|[0-9]+/gi
+  window['first'] = parts[2].match(number_re)[0]
+  window['last'] = parts[3].match(number_re)[0]
+  window['yAdvance'] = parts[4].match(number_re)[0]
+
+  data = data.replace(last_part[0], '')
+  data = data.replace(/\{/gi, '[').replace(/\}/gi, ']')
+  data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
+
+  eval(data)
+
+  /*
+      // Tada 🎉
+      console.log(window["name"]);
+      console.log(window["size"]);
+      console.log(window["first"]);
+      console.log(window["last"]);
+      console.log(window["last_part"]);
+      console.log(window[name + "Bitmaps"]);
+      console.log(window[name + "Glyphs"]);
+      */
+
+  $('.fontname').text(window['name']).show()
+
+  const glyphsArray = window[name + 'Glyphs']
+
+  // Calculate the max yAdv to scale the table columns for the glyphs
+  let maxYAdv = 0
+  for (ind in glyphsArray) {
+    maxYAdv = Math.max(maxYAdv, glyphsArray[ind][3])
+  }
+
+  let column_w = 'six'
+  if (maxYAdv <= 10) {
+    column_w = 'two'
+  } else if (maxYAdv <= 18) {
+    column_w = 'four'
+  }
+
+  // Space from the baseline to the top of the character cell is determined by the character with the
+  // largest negative yOffset.
+  var maxBaseline = 0
+
+  // Display tables
+  for (ind in glyphsArray) {
+    // for each glyph
+    var char = String.fromCharCode(parseInt(window['first'], 16) + parseInt(ind))
+    var w = glyphsArray[ind][1]
+    var h = glyphsArray[ind][2]
+    var adv = glyphsArray[ind][3]
+    var ow = glyphsArray[ind][4]
+    var oh = glyphsArray[ind][5]
+    var n = ''
+
+    maxBaseline = Math.max(maxBaseline, -oh)
+
+    // extract numbers
+    currentOffset = glyphsArray[parseInt(ind)][0]
+    if (parseInt(ind) + 1 < glyphsArray.length) {
+      nextOffset = glyphsArray[parseInt(ind) + 1][0]
+    } else {
+      nextOffset = window[name + 'Bitmaps'].length
+    }
+    for (var k = 0; k < (nextOffset - currentOffset); k++) {
+      n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
+    }
+
+    var table = $('<table cellspacing="1"></table>')
+      .addClass('glyph')
+      .attr('data-pixels', n)
+      .attr('data-w', w)
+      .attr('data-h', h)
+      .attr('data-char', char)
+      .attr('data-adv', adv)
+      .attr('data-ow', ow)
+      .attr('data-oh', oh)
+
+    var grid = $('<div class="' + column_w + ' wide column"></div>')
+    var div = $('<div class="ui attached segment inner"></div>')
+
+    div.append(table)
+    div.append('<div class="baseline"></div>')
+    div.append('<div class="xadvance_limit limit"></div>')
+    div.append('<div class="xoffset_limit limit"></div>')
+
+    if (char == ' ') {
+      grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>')
+    } else {
+      grid.append('<h2 class="ui top attached segment inner">' + char + '</h2>')
+    }
+
+    grid.append('<div class="ui attached segment inner secondary">' + '0x' + (parseInt(window['first'], 16) + parseInt(ind)).toString(16).toUpperCase() + '</div>')
+    grid.append(div)
+
+    var buttonBar = $('<div class="ui bottom attached warning message inner"></div>')
+    buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
+    buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
+    buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
+    buttonBar.append(makeUpDownButton('XOff', 'xoff', 'blue', 50))
+    buttonBar.append(makeUpDownButton('XAdv', 'xadv', 'teal', 50))
+
+    grid.append(buttonBar)
+
+    function glyphAppendClosure(el, adv, maxBaseline) {
+      setTimeout(function () {
+        advanceLoading(0.2 * adv)
+        $('#glyphs').append(el)
+        if (adv === 1) {
+          // Run the setGlyphTable function now
+          displayGlyphTable(maxBaseline)
+        }
+      }, 1)
+    }
+
+    glyphAppendClosure(grid, (parseInt(ind) + 1) / glyphsArray.length, maxBaseline)
+  }
+}
+
+function displayGlyphTable (maxBaseline) {
+  window['maxBaseline'] = maxBaseline
+
+  const l = $('#glyphs').children().length
+  $('#glyphs').children().each(function (i) {
+
+    function setGlyphTableClosure(el, adv) {
+      setTimeout(function () {
+        advanceLoading(0.2 + 0.8 * adv)
+        setGlyphTable(el.children().find('.glyph'))
+        if (adv === 1) {
+          $('#loader').hide()
+        }
+      }, 1)
+    }
+
+    setGlyphTableClosure($(this), (i + 1) / l)
+  })
+}
+
 $(document).ready(function () {
+
+  $('#loader').hide()
   window['name'] = null
   window['last_part'] = null
 
   $('#extract').click(function () {
-    var data = $('#source').val()
-
-    // Extract name
-    var re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
-    var found = data.match(re)
-
-    if (found != null && found.length > 1) {
-      window['name'] = found[1]
-    } else {
-      alert('No correct font file found, please paste the content of an Adafruit GFX font file first.')
-      return
-    }
-
-    $('#glyphs').empty()
-
-    // extract GFXFont part
-    var last_part_re = /const\ GFXfont([\s\S]*)/g
-    var last_part = data.match(last_part_re)
-    window['last_part'] = last_part[0]
-
-    // Get first, last and yOffset
-    var parts = last_part[0].split(',')
-    var number_re = /0[xX][0-9a-fA-F]+|[0-9]+/gi
-    window['first'] = parts[2].match(number_re)[0]
-    window['last'] = parts[3].match(number_re)[0]
-    window['yAdvance'] = parts[4].match(number_re)[0]
-
-    data = data.replace(last_part[0], '')
-    data = data.replace(/\{/gi, '[').replace(/\}/gi, ']')
-    data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
-
-    eval(data)
-
-    /*
-        // Tada 🎉
-        console.log(window["name"]);
-        console.log(window["size"]);
-        console.log(window["first"]);
-        console.log(window["last"]);
-        console.log(window["last_part"]);
-        console.log(window[name + "Bitmaps"]);
-        console.log(window[name + "Glyphs"]);
-        */
-
-    $('.fontname').text(window['name']).show()
-
-    const glyphsArray = window[name + 'Glyphs']
-
-    // Calculate the max yAdv to scale the table columns for the glyphs
-    let maxYAdv = 0
-    for (ind in glyphsArray) {
-      maxYAdv = Math.max(maxYAdv, glyphsArray[ind][3])
-    }
-
-    let column_w = 'six'
-    if (maxYAdv <= 10) {
-      column_w = 'two'
-    } else if (maxYAdv <= 18) {
-      column_w = 'four'
-    }
-
-    // Space from the baseline to the top of the character cell is determined by the character with the
-    // largest negative yOffset.
-    var maxBaseline = 0
-
-    // Display tables
-    for (ind in glyphsArray) {
-      // for each glyph
-      var char = String.fromCharCode(parseInt(window['first'], 16) + parseInt(ind))
-      var w = glyphsArray[ind][1]
-      var h = glyphsArray[ind][2]
-      var adv = glyphsArray[ind][3]
-      var ow = glyphsArray[ind][4]
-      var oh = glyphsArray[ind][5]
-      var n = ''
-
-      maxBaseline = Math.max(maxBaseline, -oh)
-
-      // extract numbers
-      currentOffset = glyphsArray[parseInt(ind)][0]
-      if (parseInt(ind) + 1 < glyphsArray.length) {
-        nextOffset = glyphsArray[parseInt(ind) + 1][0]
-      } else {
-        nextOffset = window[name + 'Bitmaps'].length
-      }
-      for (var k = 0; k < (nextOffset - currentOffset); k++) {
-        n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
-      }
-
-      var table = $('<table cellspacing="1"></table>')
-        .addClass('glyph')
-        .attr('data-pixels', n)
-        .attr('data-w', w)
-        .attr('data-h', h)
-        .attr('data-char', char)
-        .attr('data-adv', adv)
-        .attr('data-ow', ow)
-        .attr('data-oh', oh)
-
-      var grid = $('<div class="' + column_w + ' wide column"></div>')
-      var div = $('<div class="ui attached segment inner"></div>')
-
-      div.append(table)
-      div.append('<div class="baseline"></div>')
-      div.append('<div class="xadvance_limit limit"></div>')
-      div.append('<div class="xoffset_limit limit"></div>')
-
-      if (char == ' ') {
-        grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>')
-      } else {
-        grid.append('<h2 class="ui top attached segment inner">' + char + '</h2>')
-      }
-
-      grid.append('<div class="ui attached segment inner secondary">' + '0x' + (parseInt(window['first'], 16) + parseInt(ind)).toString(16).toUpperCase() + '</div>')
-      grid.append(div)
-
-      var buttonBar = $('<div class="ui bottom attached warning message inner"></div>')
-      buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
-      buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
-      buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
-      buttonBar.append(makeUpDownButton('XOff', 'xoff', 'blue', 50))
-      buttonBar.append(makeUpDownButton('XAdv', 'xadv', 'teal', 50))
-
-      grid.append(buttonBar)
-
-      $('#glyphs').append(grid)
-    }
-
-    window['maxBaseline'] = maxBaseline
-
-    $('#glyphs').children().each(function () {
-      setGlyphTable($(this).children().find('.glyph'))
+    advanceLoading(0)
+    $('#loader').fadeIn(function() {
+      extractFont()
     })
   })
 
