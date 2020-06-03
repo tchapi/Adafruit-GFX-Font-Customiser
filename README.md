@@ -16,6 +16,8 @@ This is useful since the fontconvert utility does not always create all the char
 
 <img src="https://avatars2.githubusercontent.com/u/16524809?s=460&v=4" width="50px;"/> [thelevelofdetail](https://github.com/thelevelofdetail) — fixes for negative xOffsets
 
+<img src="https://avatars1.githubusercontent.com/u/8611652?s=460&v=4" width="50px;"/> [Billy Donahue](https://github.com/BillyDonahue) — fixes for xadvance clipping when using _oblique_ fonts
+
 ## License
 
 MIT. See licence file.
