@@ -146,9 +146,9 @@
 function makeUpDownButton (name, func, color, width) {
   var button = $('<div class="ui mini compact buttons" style="margin:1px"></div>')
   var style = 'ui compact button ' + func + '-handler ' + color
-  button.append('<button id="' + func + '-add" class="' + style + '">+</button>')
-  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + '">' + name + '</button>')
   button.append('<button id="' + func + '-remove" class="' + style + '">-</button>')
+  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + '">' + name + '</button>')
+  button.append('<button id="' + func + '-add" class="' + style + '">+</button>')
   return button
 }
 
