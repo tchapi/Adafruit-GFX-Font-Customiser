@@ -44,6 +44,12 @@
     #glyphs table td.cell.dead {
       background: lightgrey;
     }
+    #glyphs table td.cell.origin {
+      border: 2px solid lightgreen;
+    }
+    #glyphs table td.cell.advance {
+      border: 2px solid lightblue;
+    }
     .baseline {
       position:absolute;
       left:0px;
@@ -128,8 +134,12 @@ function setGlyphTable (table) {
   table.empty()
   for (var i = 0; i < yadvance; i++) {
     var row = $('<tr></tr>')
-    for (var j = Math.min(0, xoffset); j < xadvance + Math.max(0, xoffset); j++) {
+    for (var j = Math.min(0, xoffset); j <= Math.max(xadvance, right); j++) {
       var cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i)
+      if (i == maxBaseline && j == 0)
+        cell.addClass('origin');
+      if (i == maxBaseline && j == xadvance)
+        cell.addClass('advance');
       if (i < top || i >= bottom || j < left || j >= right) {
         cell.addClass('dead')
       } else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
@@ -137,6 +147,8 @@ function setGlyphTable (table) {
         if (j >= xadvance || j < Math.max(0, xoffset)) {
           cell.addClass('over')
         }
+      } else {
+        // white gray?
       }
       row.append(cell)
     }
