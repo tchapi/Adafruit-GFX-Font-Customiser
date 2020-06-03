@@ -30,6 +30,7 @@
       width: 100%;
       table-layout: fixed;
       border-collapse: collapse;
+      user-select: none;
     }
     #glyphs table tr {
       height: 10px;
@@ -37,9 +38,13 @@
     #glyphs table td {
       border: 1px solid lightgrey;
       width: 10px;
+      cursor: pointer;
     }
     #glyphs table td.cell.fill {
       background: black;
+    }
+    #glyphs table td.cell:hover {
+      background: #999;
     }
     #glyphs table td.cell.fill.over {
       box-shadow: 0 0 9px #D00 inset;
@@ -178,10 +183,10 @@ function setGlyphTable (table) {
     for (var j = Math.min(0, xoffset); j <= Math.max(xadvance, right); j++) {
       var cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i)
       // These classes are used to position the "limits" vertical lines
-      if (i === 0 & j === 0) {
+      if (i === 0 && j === 0) {
         cell.addClass('before_xoffset')
       }
-      if (i === 0 & j === xadvance) {
+      if (i === 0 && j === xadvance) {
         cell.addClass('before_xadvance')
       }
       // Now draw the actual pixels
@@ -189,10 +194,10 @@ function setGlyphTable (table) {
         cell.addClass('dead')
       } else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
         cell.addClass('fill')
-        if (j >= xadvance || j < Math.max(0, xoffset)) {
-          // If the pixel is after xadvance, or before xoffset
-          cell.addClass('over')
-        }
+      }
+      // If the pixel is after xadvance, or before xoffset
+      if (j >= xadvance || j < Math.max(0, xoffset)) {
+        cell.addClass('over')
       }
       row.append(cell)
     }
