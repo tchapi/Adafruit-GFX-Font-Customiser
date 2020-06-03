@@ -149,8 +149,8 @@
 <script>
 
 function makeUpDownButton (name, func, color, width) {
-  var button = $('<div class="ui mini compact buttons" style="margin:1px"></div>')
-  var style = 'ui compact button ' + func + '-handler ' + color
+  const button = $('<div class="ui mini compact buttons" style="margin:1px"></div>')
+  const style = 'ui compact button ' + func + '-handler ' + color
   button.append('<button id="' + func + '-remove" class="' + style + '">-</button>')
   button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + '">' + name + '</button>')
   button.append('<button id="' + func + '-add" class="' + style + '">+</button>')
@@ -158,30 +158,30 @@ function makeUpDownButton (name, func, color, width) {
 }
 
 function setGlyphTable (table) {
-  var xadvance = parseInt(table.attr('data-adv'))
-  var yadvance = parseInt(window['yAdvance'])
+  const xadvance = parseInt(table.attr('data-adv'))
+  const yadvance = parseInt(window['yAdvance'])
 
-  var xoffset = parseInt(table.attr('data-ow'))
-  var yoffset = parseInt(table.attr('data-oh'))
+  const xoffset = parseInt(table.attr('data-ow'))
+  const yoffset = parseInt(table.attr('data-oh'))
 
-  var width = parseInt(table.attr('data-w'))
-  var height = parseInt(table.attr('data-h'))
+  const width = parseInt(table.attr('data-w'))
+  const height = parseInt(table.attr('data-h'))
 
-  var pixels = table.attr('data-pixels')
+  const pixels = table.attr('data-pixels')
 
-  var maxBaseline = window['maxBaseline']
+  const maxBaseline = window['maxBaseline']
 
-  var left = xoffset
-  var right = width + xoffset
-  var top = maxBaseline + yoffset
-  var bottom = top + height
+  const left = xoffset
+  const right = width + xoffset
+  const top = maxBaseline + yoffset
+  const bottom = top + height
 
   // Set the table
   table.empty()
-  for (var i = 0; i < yadvance; i++) {
-    var row = $('<tr></tr>')
-    for (var j = Math.min(0, xoffset); j <= Math.max(xadvance, right); j++) {
-      var cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i)
+  for (let i = 0; i < yadvance; i++) {
+    const row = $('<tr></tr>')
+    for (let j = Math.min(0, xoffset); j <= Math.max(xadvance, right); j++) {
+      const cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i)
       // These classes are used to position the "limits" vertical lines
       if (i === 0 && j === 0) {
         cell.addClass('before_xoffset')
@@ -205,27 +205,27 @@ function setGlyphTable (table) {
   }
 
   // Draw the xadvance/xoffset limits
-  // (We need to get the actual cell width)
+  // (We need to get the actual cell position)
   const left_xoffset = table.find('td.before_xoffset').offset().left - table.offset().left
   const left_xadvance = table.find('td.before_xadvance').offset().left - table.offset().left
-  var xoffset_limit = table.parent().find('.xoffset_limit')
-  var xadvance_limit = table.parent().find('.xadvance_limit')
+  const xoffset_limit = table.parent().find('.xoffset_limit')
+  const xadvance_limit = table.parent().find('.xadvance_limit')
   xoffset_limit.css('left', (left_xoffset + 10 - 1) + 'px') // -1 accounts for first border of table
   xadvance_limit.css('left', (left_xadvance + 10 - 1) + 'px')
 
   // Set the baseline
-  var baseline = table.parent().find('.baseline')
+  const baseline = table.parent().find('.baseline')
   baseline.css('top', (10 + (maxBaseline + 1) * 10) + 'px')
 }
 
 function updatePixels (table, newWidth, newHeight, x, y, fill) {
-  var dataPixels = table.attr('data-pixels')
-  var width = parseInt(table.attr('data-w'))
-  var height = parseInt(table.attr('data-h'))
-  var xoff = parseInt(table.attr('data-ow'))
-  var base = parseInt(table.attr('data-oh'))
-  var xAdjust = xoff * -1
-  var yAdjust = (window['maxBaseline'] + base) * -1
+  const dataPixels = table.attr('data-pixels')
+  const width = parseInt(table.attr('data-w'))
+  const height = parseInt(table.attr('data-h'))
+  const xoff = parseInt(table.attr('data-ow'))
+  const base = parseInt(table.attr('data-oh'))
+  const xAdjust = xoff * -1
+  const yAdjust = (window['maxBaseline'] + base) * -1
 
   if (newWidth < 0) {
     newWidth = width
@@ -241,11 +241,11 @@ function updatePixels (table, newWidth, newHeight, x, y, fill) {
   }
 
   // Store the pixels into a 2D bool array
-  var array = [ ]
-  var pixelIndex = 0
-  for (var i = 0; i < height; ++i) {
-    var rowArray = [ ]
-    for (var j = 0; j < width; ++j) {
+  const array = []
+  let pixelIndex = 0
+  for (let i = 0; i < height; ++i) {
+    const rowArray = []
+    for (let j = 0; j < width; ++j) {
       if(x == j && y == i) {
         rowArray.push(fill)
       } else {
@@ -256,11 +256,10 @@ function updatePixels (table, newWidth, newHeight, x, y, fill) {
     array.push(rowArray)
   }
 
-
   // Write out to a string newWidth x newHeight
-  var newPixels = ''
-  for (var i = 0; i < newHeight; ++i) {
-    for (var j = 0; j < newWidth; ++j) {
+  let newPixels = ''
+  for (let i = 0; i < newHeight; ++i) {
+    for (let j = 0; j < newWidth; ++j) {
       if (i >= height || j >= width) {
         newPixels += '0'
       } else {
@@ -270,8 +269,8 @@ function updatePixels (table, newWidth, newHeight, x, y, fill) {
   }
 
   // Pad out to a multiple of 8
-  var pad = newPixels.length % 8
-  for (var i = 0; i < pad; ++i) {
+  const pad = newPixels.length % 8
+  for (let i = 0; i < pad; ++i) {
     newPixels += '0'
   }
 
@@ -284,11 +283,11 @@ function advanceLoading (percent) {
 }
 
 function extractFont () {
-  var data = $('#source').val()
+  let data = $('#source').val()
 
   // Extract name
-  var re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
-  var found = data.match(re)
+  const re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
+  const found = data.match(re)
 
   if (found != null && found.length > 1) {
     window['name'] = found[1]
@@ -301,13 +300,13 @@ function extractFont () {
   $('#glyphs').empty()
 
   // extract GFXFont part
-  var last_part_re = /const\ GFXfont([\s\S]*)/g
-  var last_part = data.match(last_part_re)
+  const last_part_re = /const\ GFXfont([\s\S]*)/g
+  const last_part = data.match(last_part_re)
   window['last_part'] = last_part[0]
 
   // Get first, last and yOffset
-  var parts = last_part[0].split(',')
-  var number_re = /0[xX][0-9a-fA-F]+|[0-9]+/gi
+  const parts = last_part[0].split(',')
+  const number_re = /0[xX][0-9a-fA-F]+|[0-9]+/gi
   window['first'] = parts[2].match(number_re)[0]
   window['last'] = parts[3].match(number_re)[0]
   window['yAdvance'] = parts[4].match(number_re)[0]
@@ -348,18 +347,18 @@ function extractFont () {
 
   // Space from the baseline to the top of the character cell is determined by the character with the
   // largest negative yOffset.
-  var maxBaseline = 0
+  let maxBaseline = 0
 
   // Display tables
   for (ind in glyphsArray) {
     // for each glyph
-    var char = String.fromCharCode(parseInt(window['first'], 16) + parseInt(ind))
-    var w = glyphsArray[ind][1]
-    var h = glyphsArray[ind][2]
-    var adv = glyphsArray[ind][3]
-    var ow = glyphsArray[ind][4]
-    var oh = glyphsArray[ind][5]
-    var n = ''
+    const char = String.fromCharCode(parseInt(window['first'], 16) + parseInt(ind))
+    const w = glyphsArray[ind][1]
+    const h = glyphsArray[ind][2]
+    const adv = glyphsArray[ind][3]
+    const ow = glyphsArray[ind][4]
+    const oh = glyphsArray[ind][5]
+    let n = ''
 
     maxBaseline = Math.max(maxBaseline, -oh)
 
@@ -370,11 +369,11 @@ function extractFont () {
     } else {
       nextOffset = window[name + 'Bitmaps'].length
     }
-    for (var k = 0; k < (nextOffset - currentOffset); k++) {
+    for (let k = 0; k < (nextOffset - currentOffset); k++) {
       n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
     }
 
-    var table = $('<table cellspacing="1"></table>')
+    const table = $('<table cellspacing="1"></table>')
       .addClass('glyph')
       .attr('data-pixels', n)
       .attr('data-w', w)
@@ -384,8 +383,8 @@ function extractFont () {
       .attr('data-ow', ow)
       .attr('data-oh', oh)
 
-    var grid = $('<div class="' + column_w + ' wide column"></div>')
-    var div = $('<div class="ui attached segment inner"></div>')
+    const grid = $('<div class="' + column_w + ' wide column"></div>')
+    const div = $('<div class="ui attached segment inner"></div>')
 
     div.append(table)
     div.append('<div class="baseline"></div>')
@@ -401,7 +400,7 @@ function extractFont () {
     grid.append('<div class="ui attached segment inner secondary">' + '0x' + (parseInt(window['first'], 16) + parseInt(ind)).toString(16).toUpperCase() + '</div>')
     grid.append(div)
 
-    var buttonBar = $('<div class="ui bottom attached warning message inner"></div>')
+    const buttonBar = $('<div class="ui bottom attached warning message inner"></div>')
     buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
     buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
     buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
@@ -459,21 +458,21 @@ $(document).ready(function () {
   })
 
   $(document).on('click', '.cell', function (e) {
-    var target = $(e.target)
+    const target = $(e.target)
     target.toggleClass('fill')
-    var fill =  target.hasClass('fill') ? '1' : '0'
-    var table = target.parent().parent().parent().find('table.glyph')
+    const fill = target.hasClass('fill') ? '1' : '0'
+    const table = target.parent().parent().parent().find('table.glyph')
     updatePixels(table, -1, -1, parseInt(target.attr('data-x')), parseInt(target.attr('data-y')), fill)
   })
 
   $(document).on('click', '.row-handler', function (e) {
-    var targetID = $(e.target).attr('id')
-    var table = $(e.target).parent().parent().parent().find('table.glyph')
-    var height = parseInt(table.attr('data-h'))
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    let height = parseInt(table.attr('data-h'))
 
-    if (targetID == 'row-add') {
+    if (targetID === 'row-add') {
       height++
-    } else if (targetID == 'row-remove') {
+    } else if (targetID === 'row-remove') {
       height--
     }
 
@@ -484,13 +483,13 @@ $(document).ready(function () {
   })
 
   $(document).on('click', '.col-handler', function (e) {
-    var targetID = $(e.target).attr('id')
-    var table = $(e.target).parent().parent().parent().find('table.glyph')
-    var width = parseInt(table.attr('data-w'))
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    let width = parseInt(table.attr('data-w'))
 
-    if (targetID == 'col-add') {
+    if (targetID === 'col-add') {
       width++
-    } else if (targetID == 'col-remove') {
+    } else if (targetID === 'col-remove') {
       width--
     }
 
@@ -501,11 +500,11 @@ $(document).ready(function () {
   })
 
   $(document).on('click', '.base-handler', function (e) {
-    var targetID = $(e.target).attr('id')
-    var table = $(e.target).parent().parent().parent().find('table.glyph')
-    if (targetID == 'base-add') {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    if (targetID === 'base-add') {
       table.attr('data-oh', parseInt(table.attr('data-oh')) + 1)
-    } else if (targetID == 'base-remove') {
+    } else if (targetID === 'base-remove') {
       table.attr('data-oh', parseInt(table.attr('data-oh')) - 1)
     }
 
@@ -514,11 +513,11 @@ $(document).ready(function () {
   })
 
   $(document).on('click', '.xadv-handler', function (e) {
-    var targetID = $(e.target).attr('id')
-    var table = $(e.target).parent().parent().parent().find('table.glyph')
-    if (targetID == 'xadv-add') {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    if (targetID === 'xadv-add') {
       table.attr('data-adv', parseInt(table.attr('data-adv')) + 1)
-    } else if (targetID == 'xadv-remove') {
+    } else if (targetID === 'xadv-remove') {
       table.attr('data-adv', parseInt(table.attr('data-adv')) - 1)
     }
 
@@ -527,11 +526,11 @@ $(document).ready(function () {
   })
 
   $(document).on('click', '.xoff-handler', function (e) {
-    var targetID = $(e.target).attr('id')
-    var table = $(e.target).parent().parent().parent().find('table.glyph')
-    if (targetID == 'xoff-add') {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    if (targetID === 'xoff-add') {
       table.attr('data-ow', parseInt(table.attr('data-ow')) + 1)
-    } else if (targetID == 'xoff-remove') {
+    } else if (targetID === 'xoff-remove') {
       table.attr('data-ow', parseInt(table.attr('data-ow')) - 1)
     }
 
@@ -540,17 +539,17 @@ $(document).ready(function () {
   })
 
   $('#export').click(function () {
-    var glyphs = []
-    var bitsArray = []
-    var offset = 0
-    var isFirstCharacter = true
+    const glyphs = []
+    const bitsArray = []
+    let offset = 0
+    let isFirstCharacter = true
 
     $('table.glyph').each(function () {
-      var t = $(this)
-      var bits = ''
-      var dataPixels = $(this).attr('data-pixels')
+      const t = $(this)
+      const dataPixels = $(this).attr('data-pixels')
+      let bits = ''
 
-      for (var i=0; i < dataPixels.length; i++) {
+      for (let i = 0; i < dataPixels.length; i++) {
         bits += dataPixels.charAt(i)
         // Each 8 bits, we form the HEX value
         if (bits.length == 8) {
@@ -564,7 +563,7 @@ $(document).ready(function () {
         bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
       }
 
-      var isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset < window[name + 'Bitmaps'].length
+      let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset < window[name + 'Bitmaps'].length
 
       glyphs.push(
         ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
@@ -581,33 +580,33 @@ $(document).ready(function () {
     })
 
     // Bitmaps
-    var bitmapsOutput = 'const uint8_t ' + name + 'Bitmaps[] PROGMEM = {\n'
+    let bitmapsOutput = 'const uint8_t ' + name + 'Bitmaps[] PROGMEM = {\n'
     // We want to join per 12 words
-    var limit = Math.floor(bitsArray.length / 12)
-    for (nb = 0; nb < limit; nb++) {
-      var isLastLine = (limit * 12 == bitsArray.length) && (nb == limit - 1)
+    const limit = Math.floor(bitsArray.length / 12)
+    for (let nb = 0; nb < limit; nb++) {
+      const isLastLine = (limit * 12 === bitsArray.length) && (nb === limit - 1)
 
       bitmapsOutput += '  ' + bitsArray[nb * 12] + ', ' +
-                                  bitsArray[nb * 12 + 1] + ', ' +
-                                  bitsArray[nb * 12 + 2] + ', ' +
-                                  bitsArray[nb * 12 + 3] + ', ' +
-                                  bitsArray[nb * 12 + 4] + ', ' +
-                                  bitsArray[nb * 12 + 5] + ', ' +
-                                  bitsArray[nb * 12 + 6] + ', ' +
-                                  bitsArray[nb * 12 + 7] + ', ' +
-                                  bitsArray[nb * 12 + 8] + ', ' +
-                                  bitsArray[nb * 12 + 9] + ', ' +
-                                  bitsArray[nb * 12 + 10] + ', ' +
-                                  bitsArray[nb * 12 + 11] + (isLastLine ? '' : ',') + ' \n'
+                              bitsArray[nb * 12 + 1] + ', ' +
+                              bitsArray[nb * 12 + 2] + ', ' +
+                              bitsArray[nb * 12 + 3] + ', ' +
+                              bitsArray[nb * 12 + 4] + ', ' +
+                              bitsArray[nb * 12 + 5] + ', ' +
+                              bitsArray[nb * 12 + 6] + ', ' +
+                              bitsArray[nb * 12 + 7] + ', ' +
+                              bitsArray[nb * 12 + 8] + ', ' +
+                              bitsArray[nb * 12 + 9] + ', ' +
+                              bitsArray[nb * 12 + 10] + ', ' +
+                              bitsArray[nb * 12 + 11] + (isLastLine ? '' : ',') + ' \n'
     }
 
-    if (limit * 12 != bitsArray.length) {
+    if (limit * 12 !== bitsArray.length) {
       bitmapsOutput += '  ' + bitsArray.slice(-(bitsArray.length - limit * 12)).join(', ') + '\n'
     }
     bitmapsOutput += '};\n\n'
 
     // Glyphs
-    var glyphsOutput = 'const GFXglyph ' + name + 'Glyphs[] PROGMEM = {\n'
+    let glyphsOutput = 'const GFXglyph ' + name + 'Glyphs[] PROGMEM = {\n'
     glyphsOutput += glyphs.join('\n') + '\n};\n\n'
 
     data = bitmapsOutput + glyphsOutput + window['last_part']
