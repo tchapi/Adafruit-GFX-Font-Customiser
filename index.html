@@ -28,6 +28,8 @@
       border: 1px solid black;
       margin: 0;
       width: 100%;
+      table-layout: fixed;
+      border-collapse: collapse;
     }
     #glyphs table tr {
       height: 10px;
@@ -57,7 +59,7 @@
     .limit {
       position: absolute;
       top: 0px;
-      width: 3px;
+      width: 2px;
       height: 100%;
       opacity: 0.4;
       pointer-events: none;
@@ -140,6 +142,13 @@ function setGlyphTable (table) {
     var row = $('<tr></tr>')
     for (var j = Math.min(0, xoffset); j <= Math.max(xadvance, right); j++) {
       var cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i)
+      // These classes are used to position the "limits" vertical lines
+      if (i === 0 & j === 0) {
+        cell.addClass('before_xoffset')
+      }
+      if (i === 0 & j === xadvance) {
+        cell.addClass('before_xadvance')
+      }
       // Now draw the actual pixels
       if (i < top || i >= bottom || j < left || j >= right) {
         cell.addClass('dead')
@@ -157,16 +166,16 @@ function setGlyphTable (table) {
 
   // Draw the xadvance/xoffset limits
   // (We need to get the actual cell width)
-  const cell_width = table.find('td').outerWidth() + 1 // border
-  console.log(cell_width)
-  var xadvance_limit = table.parent().find('.xadvance_limit')
+  const left_xoffset = table.find('td.before_xoffset').offset().left - table.offset().left
+  const left_xadvance = table.find('td.before_xadvance').offset().left - table.offset().left
   var xoffset_limit = table.parent().find('.xoffset_limit')
-  xadvance_limit.css('left', (Math.max(0, -xoffset) * cell_width + 10) + 'px')
-  xoffset_limit.css('left', (cell_width * (Math.max(0, -xoffset) + xadvance) + 10) + 'px')
+  var xadvance_limit = table.parent().find('.xadvance_limit')
+  xoffset_limit.css('left', (left_xoffset + 10 - 1) + 'px') // -1 accounts for first border of table
+  xadvance_limit.css('left', (left_xadvance + 10 - 1) + 'px')
 
   // Set the baseline
   var baseline = table.parent().find('.baseline')
-  baseline.css('top', (10 + (maxBaseline + 1) * 11) + 'px')
+  baseline.css('top', (10 + (maxBaseline + 1) * 10) + 'px')
 }
 
 function updatePixels (table, newWidth, newHeight, x, y, fill) {
