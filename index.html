@@ -26,7 +26,8 @@
     }
     #glyphs table {
       border: 1px solid black;
-      margin: auto;
+      margin: 0;
+      width: 100%;
     }
     #glyphs table tr {
       height: 10px;
@@ -39,7 +40,7 @@
       background: black;
     }
     #glyphs table td.cell.fill.over {
-      box-shadow: 0 0 6px red inset;
+      box-shadow: 0 0 9px #D00 inset;
     }
     #glyphs table td.cell.dead {
       background: lightgrey;
@@ -52,6 +53,15 @@
       background-color:#090;
       opacity:0.4;
       pointer-events: none;
+    }
+    .limit {
+      position: absolute;
+      top: 0px;
+      width: 3px;
+      height: 100%;
+      opacity: 0.4;
+      pointer-events: none;
+      background-color: #900;
     }
    </style>
 </head>
@@ -128,13 +138,15 @@ function setGlyphTable (table) {
   table.empty()
   for (var i = 0; i < yadvance; i++) {
     var row = $('<tr></tr>')
-    for (var j = Math.min(0, xoffset); j < xadvance + Math.max(0, xoffset); j++) {
+    for (var j = Math.min(0, xoffset); j <= Math.max(xadvance, right); j++) {
       var cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i)
+      // Now draw the actual pixels
       if (i < top || i >= bottom || j < left || j >= right) {
         cell.addClass('dead')
       } else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
         cell.addClass('fill')
         if (j >= xadvance || j < Math.max(0, xoffset)) {
+          // If the pixel is after xadvance, or before xoffset
           cell.addClass('over')
         }
       }
@@ -142,6 +154,15 @@ function setGlyphTable (table) {
     }
     table.append(row)
   }
+
+  // Draw the xadvance/xoffset limits
+  // (We need to get the actual cell width)
+  const cell_width = table.find('td').outerWidth() + 1 // border
+  console.log(cell_width)
+  var xadvance_limit = table.parent().find('.xadvance_limit')
+  var xoffset_limit = table.parent().find('.xoffset_limit')
+  xadvance_limit.css('left', (Math.max(0, -xoffset) * cell_width + 10) + 'px')
+  xoffset_limit.css('left', (cell_width * (Math.max(0, -xoffset) + xadvance) + 10) + 'px')
 
   // Set the baseline
   var baseline = table.parent().find('.baseline')
@@ -317,6 +338,8 @@ $(document).ready(function () {
 
       div.append(table)
       div.append('<div class="baseline"></div>')
+      div.append('<div class="xadvance_limit limit"></div>')
+      div.append('<div class="xoffset_limit limit"></div>')
 
       if (char == ' ') {
         grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>')
