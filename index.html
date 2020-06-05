@@ -333,15 +333,15 @@ function extractFont () {
   const glyphsArray = window[name + 'Glyphs']
 
   // Calculate the max yAdv to scale the table columns for the glyphs
-  let maxYAdv = 0
+  let maxXAdv = 0
   for (ind in glyphsArray) {
-    maxYAdv = Math.max(maxYAdv, glyphsArray[ind][3])
+    maxXAdv = Math.max(maxXAdv, glyphsArray[ind][3])
   }
 
   let column_w = 'six'
-  if (maxYAdv <= 10) {
+  if (maxXAdv <= 10) {
     column_w = 'two'
-  } else if (maxYAdv <= 18) {
+  } else if (maxXAdv <= 18) {
     column_w = 'four'
   }
 
