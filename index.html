@@ -133,6 +133,16 @@
             <label>Output</label>
             <textarea id="result" readonly></textarea>
           </div>
+          <div class="two fields">
+            <div class="field">
+              <label>First glyph to export</label>
+            <input type="text" id="firstglyph" value="0x00" />
+            </div>
+            <div class="field">
+              <label>Last glyph to export</label>
+            <input type="text" id="lastglyph" value="0x00" />
+            </div>
+          </div>
           <button class="ui button green" id="export">Process and create file</button>
         </div>
       </div>
@@ -305,7 +315,7 @@ function extractFont () {
   window['last_part'] = last_part[0]
 
   // Get first, last and yOffset
-  const parts = last_part[0].split(',')
+  let parts = last_part[0].split(',')
   const number_re = /0[xX][0-9a-fA-F]+|[0-9]+/gi
   window['first'] = parts[2].match(number_re)[0]
   window['last'] = parts[3].match(number_re)[0]
@@ -329,6 +339,8 @@ function extractFont () {
       */
 
   $('.fontname').text(window['name']).show()
+  $('#firstglyph').val(window["first"]);
+  $('#lastglyph').val(window["last"]);
 
   const glyphsArray = window[name + 'Glyphs']
 
@@ -543,9 +555,16 @@ $(document).ready(function () {
     const bitsArray = []
     let offset = 0
     let isFirstCharacter = true
+    const firstglyph = parseInt($('#firstglyph').val(), 16)
+    const lastglyph = parseInt($('#lastglyph').val(), 16)
 
     $('table.glyph').each(function () {
-      const t = $(this)
+      const t = $(this);
+      // Ignore glyphs outside of requested range
+      if (t.attr('data-char').charCodeAt(0) < firstglyph || 
+          t.attr('data-char').charCodeAt(0) > lastglyph) { 
+        return
+      }
       const dataPixels = $(this).attr('data-pixels')
       let bits = ''
 
@@ -609,7 +628,13 @@ $(document).ready(function () {
     let glyphsOutput = 'const GFXglyph ' + name + 'Glyphs[] PROGMEM = {\n'
     glyphsOutput += glyphs.join('\n') + '\n};\n\n'
 
-    data = bitmapsOutput + glyphsOutput + window['last_part']
+    // Create a new last_part with the updated first & last glyph values in it
+    let parts = window['last_part'].split(',')    
+    parts[2] = '0x' + firstglyph.toString(16)
+    parts[3] = '0x' + lastglyph.toString(16)
+    const updated_last_part=parts.join(", ",parts)
+
+    data = bitmapsOutput + glyphsOutput + updated_last_part
     $('#result').val(data)
   })
 })
