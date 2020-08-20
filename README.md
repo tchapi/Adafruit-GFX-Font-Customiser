@@ -18,6 +18,8 @@ This is useful since the fontconvert utility does not always create all the char
 
 <img src="https://avatars1.githubusercontent.com/u/8611652?s=460&v=4" width="50px;"/> [Billy Donahue](https://github.com/BillyDonahue) — fixes for xadvance clipping when using _oblique_ fonts
 
+<img src="https://avatars1.githubusercontent.com/u/325326?s=460&v=4" width="50px;"/> [Mats Engstrom](https://github.com/SmallRoomLabs) — fixes to allow generating a range of glyphs
+
 ## License
 
 MIT. See licence file.

@@ -136,11 +136,11 @@
           <div class="two fields">
             <div class="field">
               <label>First glyph to export</label>
-            <input type="text" id="firstglyph" value="0x00" />
+              <input type="text" id="firstglyph" value="0x00" />
             </div>
             <div class="field">
               <label>Last glyph to export</label>
-            <input type="text" id="lastglyph" value="0x00" />
+              <input type="text" id="lastglyph" value="0x00" />
             </div>
           </div>
           <button class="ui button green" id="export">Process and create file</button>
@@ -288,7 +288,7 @@ function updatePixels (table, newWidth, newHeight, x, y, fill) {
 }
 
 function advanceLoading (percent) {
-  const element = document.querySelector('#loader .advance');
+  const element = document.querySelector('#loader .advance')
   element.style.width = Math.floor(294 * percent)
 }
 
@@ -329,18 +329,18 @@ function extractFont () {
 
   /*
       // Tada 🎉
-      console.log(window["name"]);
-      console.log(window["size"]);
-      console.log(window["first"]);
-      console.log(window["last"]);
-      console.log(window["last_part"]);
-      console.log(window[name + "Bitmaps"]);
-      console.log(window[name + "Glyphs"]);
+      console.log(window["name"])
+      console.log(window["size"])
+      console.log(window["first"])
+      console.log(window["last"])
+      console.log(window["last_part"])
+      console.log(window[name + "Bitmaps"])
+      console.log(window[name + "Glyphs"])
       */
 
   $('.fontname').text(window['name']).show()
-  $('#firstglyph').val(window["first"]);
-  $('#lastglyph').val(window["last"]);
+  $('#firstglyph').val(window["first"])
+  $('#lastglyph').val(window["last"])
 
   const glyphsArray = window[name + 'Glyphs']
 
@@ -559,10 +559,9 @@ $(document).ready(function () {
     const lastglyph = parseInt($('#lastglyph').val(), 16)
 
     $('table.glyph').each(function () {
-      const t = $(this);
+      const t = $(this)
       // Ignore glyphs outside of requested range
-      if (t.attr('data-char').charCodeAt(0) < firstglyph || 
-          t.attr('data-char').charCodeAt(0) > lastglyph) { 
+      if (t.attr('data-char').charCodeAt(0) < firstglyph || t.attr('data-char').charCodeAt(0) > lastglyph) {
         return
       }
       const dataPixels = $(this).attr('data-pixels')
@@ -632,7 +631,7 @@ $(document).ready(function () {
     let parts = window['last_part'].split(',')    
     parts[2] = '0x' + firstglyph.toString(16)
     parts[3] = '0x' + lastglyph.toString(16)
-    const updated_last_part=parts.join(", ",parts)
+    const updated_last_part = parts.join(", ",parts)
 
     data = bitmapsOutput + glyphsOutput + updated_last_part
     $('#result').val(data)
