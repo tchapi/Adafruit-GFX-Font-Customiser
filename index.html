@@ -167,6 +167,12 @@ function makeUpDownButton (name, func, color, width) {
   return button
 }
 
+function makeCheckButton (name, func, color, width) {
+  const button = $('<span class="ui mini compact" style="margin:1px"></span>')
+  button.append('<span class="ui '+color+' label" disabled style="width:' + width + '""><input type="checkbox" class="'+func+'-handler" id="'+func+'"> '+name+'</span>')
+  return button
+}
+
 function setGlyphTable (table) {
   const xadvance = parseInt(table.attr('data-adv'))
   const yadvance = parseInt(window['yAdvance'])
@@ -394,6 +400,7 @@ function extractFont () {
       .attr('data-adv', adv)
       .attr('data-ow', ow)
       .attr('data-oh', oh)
+      .attr('data-dis', 0)
 
     const grid = $('<div class="' + column_w + ' wide column"></div>')
     const div = $('<div class="ui attached segment inner"></div>')
@@ -418,6 +425,7 @@ function extractFont () {
     buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
     buttonBar.append(makeUpDownButton('XOff', 'xoff', 'blue', 50))
     buttonBar.append(makeUpDownButton('XAdv', 'xadv', 'teal', 50))
+    buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 110))
 
     grid.append(buttonBar)
 
@@ -550,6 +558,13 @@ $(document).ready(function () {
     return false
   })
 
+  $(document).on('change', '.dis-handler', function (e) {
+    const table = $(e.target).parent().parent().parent().parent().find('table.glyph')
+    table.attr('data-dis', 1 - parseInt(table.attr('data-dis')))
+    table.fadeTo('fast', 1 - 0.9 * table.attr('data-dis'))
+    return false
+  })
+
   $('#export').click(function () {
     const glyphs = []
     const bitsArray = []
@@ -564,7 +579,11 @@ $(document).ready(function () {
       if (t.attr('data-char').charCodeAt(0) < firstglyph || t.attr('data-char').charCodeAt(0) > lastglyph) {
         return
       }
-      const dataPixels = $(this).attr('data-pixels')
+
+      var dataPixels = $(this).attr('data-pixels')
+      if (t.attr('data-dis') == 1) {
+        dataPixels = ''
+      }
       let bits = ''
 
       for (let i = 0; i < dataPixels.length; i++) {
@@ -583,11 +602,15 @@ $(document).ready(function () {
 
       let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset < window[name + 'Bitmaps'].length
 
+      // Set data width/height to 0 for disabled glyphs
+      const w=parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
+      const h=parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
+
       glyphs.push(
         ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
                 ('     ' + offset).slice(-5) + ', ' +
-                ('   ' + parseInt(t.attr('data-w'))).slice(-3) + ', ' +
-                ('   ' + parseInt(t.attr('data-h'))).slice(-3) + ', ' +
+                ('   ' + w).slice(-3) + ', ' +
+                ('   ' + h).slice(-3) + ', ' +
                 ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
                 ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
                 ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
