@@ -14,6 +14,14 @@
       font-family: "Courier", monotype;
       font-size: 0.9em !important;
     }
+    .explanation {
+      margin-top: -1rem;
+    }
+    .explanation ul {
+      list-style-type: circle;
+      margin: 0;
+      padding-left: 14px;
+    }
     #glyphs div.inner {
       padding: 10px;
       text-align: center;
@@ -149,6 +157,11 @@
     </div>
   </div>
 
+  <h2 class="ui header">How to use it</h2>
+  <div class="ui explanation">
+    When exporting, you can either :
+    <ul><li>Select a range of characters to include in the output. Characters outside of this range will <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
+      <li>Disable individual characters. The disabled characters simply points to the same location in the bitmap as the previous character and gets its bitmap width and height set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li></ul></div>
   <h2 class="ui header">Separate glyphs</h2>
   <div id="loader">
     <div class="advance-wrapper"><div class="advance"></div></div>
@@ -169,7 +182,7 @@ function makeUpDownButton (name, func, color, width) {
 
 function makeCheckButton (name, func, color, width) {
   const button = $('<span class="ui mini compact" style="margin:1px"></span>')
-  button.append('<span class="ui '+color+' label" disabled style="width:' + width + '""><input type="checkbox" class="'+func+'-handler" id="'+func+'"> '+name+'</span>')
+  button.append('<label class="ui '+color+' label" disabled style="width:' + width + '""><input type="checkbox" class="'+func+'-handler" id="'+func+'"> '+name+'</label>')
   return button
 }
 
@@ -603,8 +616,8 @@ $(document).ready(function () {
       let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset < window[name + 'Bitmaps'].length
 
       // Set data width/height to 0 for disabled glyphs
-      const w=parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
-      const h=parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
+      const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
+      const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
 
       glyphs.push(
         ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
@@ -614,7 +627,7 @@ $(document).ready(function () {
                 ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
                 ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
                 ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
-                "// '" + t.attr('data-char') + "'")
+                "// '" + t.attr('data-char') + "'" + (t.attr('data-dis') == 1 ? ' disabled' : ''))
 
       offset = bitsArray.length
       isFirstCharacter = false
