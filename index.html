@@ -586,6 +586,21 @@ $(document).ready(function () {
     const firstglyph = parseInt($('#firstglyph').val(), 16)
     const lastglyph = parseInt($('#lastglyph').val(), 16)
     lastchar = 0
+    
+    let firstglyphtoadd = firstglyph
+    let firstglyphintable = $('table.glyph').first().attr('data-char').charCodeAt(0)
+    for(;firstglyphtoadd < firstglyphintable ; firstglyphtoadd++) {
+      glyphs.push(
+        ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+                ('     ' + offset).slice(-5) + ', ' +
+                ('   ' + 0).slice(-3) + ', ' +
+                ('   ' + 0).slice(-3) + ', ' +
+                ('   ' + 0).slice(-3) + ', ' +
+                ('    ' + 0).slice(-4) + ', ' +
+                ('    ' + 0).slice(-4) + ' }   ' +
+                "// '" + String.fromCharCode(firstglyphtoadd) + "'" )
+        isFirstCharacter = false
+    }
 
     $('table.glyph').each(function () {
       const t = $(this)
