@@ -132,7 +132,6 @@
             <textarea id="source"></textarea>
           </div>
             <button class="ui button teal" id="extract">Extract</button>
-            <button class="ui button blue" id="add" disabled="disabled"><i class="icon add"></i> Add a new character</button>
         </div>
       </div>
     </div>
@@ -141,10 +140,24 @@
       <div class="header">Add a new character</div>
       <div class="content">
         <p>The character will be added to the set (<em>either at the end or at the beginning, depending on its code</em>), and if it is not contiguous with the previous set, <strong>the interval characters will be added too</strong>, but disabled, so that they do not take much space in the exported glyphs</p>
+        <form class="ui form">
+        <div class="field">
+          <div class="ui toggle checkbox use-charcode">
+            <input type="checkbox" name="charcode" tabindex="0" class="hidden">
+            <label>Use char code</label>
+          </div>
+        </div>
+        </form>
         <div class="ui right labeled input">
           <input type="text" id="new-character" placeholder="Character to add" maxlength="1">
           <a class="ui label">
             Char Code: <kbd class="charcode">N/A</kbd>
+          </a>
+        </div>
+        <div class="ui right labeled input">
+          <input type="text" id="new-character-code" placeholder="Character code to add (hex)" maxlength="4">
+          <a class="ui label">
+            Character: <kbd class="character">N/A</kbd>
           </a>
         </div>
       </div>
@@ -198,6 +211,8 @@
     </ul>
   </div>
   <h2 class="ui header">Separate glyphs</h2>
+  <p><button class="ui small button blue" id="add" disabled="disabled"><i class="icon add"></i> Add a new character</button></p>
+
   <div id="loader">
     <div class="advance-wrapper"><div class="advance"></div></div>
     <span>Loading and extracting font ...</span>
@@ -526,7 +541,14 @@ function displayGlyphTable (maxBaseline) {
 
 $(document).ready(function () {
 
+  $('#new-character-code').parent().hide()
   $('#add').attr('disabled', 'disabled')
+  $('.ui.checkbox.use-charcode').checkbox()
+  $(document).on('change', '.ui.checkbox.use-charcode input', function (e) {
+    $('#new-character').parent().toggle()
+    $('#new-character-code').parent().toggle()
+  })
+
 
   $('#loader').hide()
   window['name'] = null
@@ -635,11 +657,27 @@ $(document).ready(function () {
     }
   })
 
+  $(document).on('keyup', '#new-character-code', function (e) {
+    if ($('#new-character-code').val() == '') {
+      $('.character').text('N/A')
+    } else {
+      $('.character').text(String.fromCharCode($('#new-character-code').val()))
+    }
+  })
+
   $('#add').click(function () {
+    $('input[name=charcode]').prop('checked', false)
+    $('#new-character').parent().show()
+    $('#new-character-code').parent().hide()
     if ($('#new-character').val() == '') {
       $('.charcode').text('N/A')
     } else {
       $('.charcode').text('0x' + $('#new-character').val().charCodeAt(0).toString(16).toUpperCase())
+    }
+    if ($('#new-character-code').val() == '') {
+      $('.character').text('N/A')
+    } else {
+      $('.character').text(String.fromCharCode($('#new-character-code').val()))
     }
     
     // Choose a character
@@ -648,8 +686,16 @@ $(document).ready(function () {
       onApprove: function() {
         const firstglyph = parseInt($('#firstglyph').val(), 16)
         const lastglyph = parseInt($('#lastglyph').val(), 16)
-        const newChar = $('#new-character').val()
-        const newCharCode = $('#new-character').val().charCodeAt(0)
+
+        let newChar
+        let newCharCode
+        if ($('input[name=charcode]').is(':checked')) {
+          newCharCode = $('#new-character-code').val()
+          newChar = String.fromCharCode(newCharCode)
+        } else {
+          newChar = $('#new-character').val()
+          newCharCode = $('#new-character').val().charCodeAt(0)
+        }
 
         if (newChar == '') {
           $('.ui.modal.message p').text('This character is either blank or incorrect, I\'m not adding it.')
@@ -657,8 +703,14 @@ $(document).ready(function () {
           return
         }
 
-        if (newCharCode < 32) {
-          $('.ui.modal.message p').text('This is a control character, I\'m not adding it.')
+        if (newCharCode < 1) {
+          $('.ui.modal.message p').text('This is a special control character, I\'m not adding it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        if (newCharCode > 65535) {
+          $('.ui.modal.message p').text('This character is out of range, I\'m not adding it.')
           $('.ui.modal.message').modal('show')
           return
         }
@@ -681,7 +733,7 @@ $(document).ready(function () {
           for (j = start; j < end + 1; j++) {
             const char = String.fromCharCode(parseInt(j))
 
-            const grid = makeGlyphItem (' ', 0, 0, char, 4, 0, 1, !(j === newCharCode))
+            const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
             $('#glyphs').append(grid)
             setGlyphTable(grid.find('.glyph'))
           }
