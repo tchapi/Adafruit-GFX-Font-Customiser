@@ -801,16 +801,29 @@ $(document).ready(function () {
       if (char === "\n") char = "\\n"
       if (char === "\r") char = "\\r"
       
-      glyphs.push(
-        ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
-                ('     ' + offset).slice(-5) + ', ' +
-                ('   ' + w).slice(-3) + ', ' +
-                ('   ' + h).slice(-3) + ', ' +
-                ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
-                ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-                ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
-                "// '" + char + "'" + (t.attr('data-dis') == 1 ? ' disabled' : ''))
-
+      if(t.attr('data-dis') == 0)
+      {
+        glyphs.push(
+          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+                  ('     ' + offset).slice(-5) + ', ' +
+                  ('   ' + w).slice(-3) + ', ' +
+                  ('   ' + h).slice(-3) + ', ' +
+                  ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
+                  ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
+                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
+                  "// '" + char + "'")
+      } else {
+        glyphs.push(
+          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+                  '    0, ' +
+                  '  0, ' +
+                  '  0, ' +
+                  '  0, ' +
+                  '   0, ' +
+                  '   0 }   ' +
+                  "// '" + char + "' disabled")
+      }
+      
       offset = bitsArray.length
       isFirstCharacter = false
     })
