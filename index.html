@@ -855,7 +855,7 @@ $(document).ready(function () {
         $('#extract').prop( "disabled", true )
         
         // Add the new character
-        const grid = makeGlyphItem (' ', 3, newfontHeight, newChar, 4, 0, -newfontHeight, false)
+        const grid = makeGlyphItem (' ' , 1, 1, newChar, 1, 0, -newfontHeight, false)
         $('#glyphs').append(grid)
         
         setGlyphTable(grid.find('.glyph'))
@@ -932,14 +932,14 @@ $(document).ready(function () {
           if(newCharCode < firstglyph) {
             for (j = end; j >= start; j--) {
               const char = String.fromCharCode(parseInt(j))
-              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, -1 * (j === newCharCode), !(j === newCharCode))
+              const grid = makeGlyphItem (' ', 1, 1, char, 4 * (j === newCharCode), 0, -window['maxBaseline'] * (j === newCharCode), !(j === newCharCode))
               $('#glyphs').prepend(grid)
               setGlyphTable(grid.find('.glyph'))
             }
           } else {
             for (j = start; j <= end; j++) {
               const char = String.fromCharCode(parseInt(j))
-              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, -1 * (j === newCharCode), !(j === newCharCode))
+              const grid = makeGlyphItem (' ', 1, 1, char, 4 * (j === newCharCode), 0, -window['maxBaseline'] * (j === newCharCode), !(j === newCharCode))
               $('#glyphs').append(grid)
               setGlyphTable(grid.find('.glyph'))
             }
