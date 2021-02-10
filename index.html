@@ -5,7 +5,8 @@
   src="https://code.jquery.com/jquery-3.2.1.min.js"
   integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
   crossorigin="anonymous"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.2.13/dist/semantic.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
   <style>
     html, body {
       margin: 0 10px;
@@ -14,9 +15,7 @@
       font-family: "Courier", monotype;
       font-size: 0.9em !important;
     }
-    .explanation {
-      margin-top: -1rem;
-    }
+
     .explanation ul {
       list-style-type: circle;
       margin: 0;
@@ -109,6 +108,9 @@
       pointer-events: none;
       background-color: #900;
     }
+    #add {
+      margin-top: 10px;
+    }
    </style>
 </head>
 <body>
@@ -131,6 +133,47 @@
           </div>
             <button class="ui button teal" id="extract">Extract</button>
         </div>
+      </div>
+    </div>
+  
+    <div class="ui small modal choose">
+      <div class="header">Add a new character</div>
+      <div class="content">
+        <p>The character will be added to the set (<em>either at the end or at the beginning, depending on its code</em>), and if it is not contiguous with the previous set, <strong>the interval characters will be added too</strong>, but disabled, so that they do not take much space in the exported glyphs</p>
+        <form class="ui form">
+        <div class="field">
+          <div class="ui toggle checkbox use-charcode">
+            <input type="checkbox" name="charcode" tabindex="0" class="hidden">
+            <label>Use char code (hex)</label>
+          </div>
+        </div>
+        </form>
+        <div class="ui right labeled input">
+          <input type="text" id="new-character" placeholder="Character to add" maxlength="1">
+          <a class="ui label">
+            Char Code: <kbd class="charcode">N/A</kbd>
+          </a>
+        </div>
+        <div class="ui right labeled input">
+          <input type="text" id="new-character-code" placeholder="Character code to add (hex)" maxlength="4">
+          <a class="ui label">
+            Character: <kbd class="character">N/A</kbd>
+          </a>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="ui cancel red button">Cancel</div>
+        <div class="ui approve green button">Add</div>
+      </div>
+    </div>
+
+    <div class="ui small modal message">
+      <div class="header">⚠️ Warning</div>
+      <div class="content">
+        <p></p>
+      </div>
+      <div class="actions">
+        <div class="ui approve blue button">Ok</div>
       </div>
     </div>
 
@@ -159,10 +202,17 @@
 
   <h2 class="ui header">How to use it</h2>
   <div class="ui explanation">
-    When exporting, you can either :
-    <ul><li>Select a range of characters to include in the output. Characters outside of this range will <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
-      <li>Disable individual characters. The disabled characters simply points to the same location in the bitmap as the previous character and gets its bitmap width and height set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li></ul></div>
+    <h5>Importing a font:</h5>
+    <p>Once a font is extracted, you can add new characters to it if they are not present in the original glyphs. Interval characters will be added automatically.</p>
+    <h5>When exporting, you can either :</h5>
+    <ul>
+      <li>Select a range of characters to include in the output. Characters outside of this range will <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
+      <li>Disable individual characters. The disabled characters simply points to the same location in the bitmap as the previous character and gets its bitmap width and height set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li>
+    </ul>
+  </div>
   <h2 class="ui header">Separate glyphs</h2>
+  <p><button class="ui small button blue" id="add" disabled="disabled"><i class="icon add"></i> Add a new character</button></p>
+
   <div id="loader">
     <div class="advance-wrapper"><div class="advance"></div></div>
     <span>Loading and extracting font ...</span>
@@ -180,10 +230,55 @@ function makeUpDownButton (name, func, color, width) {
   return button
 }
 
-function makeCheckButton (name, func, color, width) {
+function makeCheckButton (name, func, color, width, disabled) {
   const button = $('<span class="ui mini compact" style="margin:1px"></span>')
-  button.append('<label class="ui '+color+' label" disabled style="width:' + width + '""><input type="checkbox" class="'+func+'-handler" id="'+func+'"> '+name+'</label>')
+  button.append('<label class="ui '+color+' label" disabled style="width:' + width + '""><input type="checkbox" class="'+func+'-handler" id="'+func+'"' + (disabled ? ' checked="checked"' : '') + '> '+name+'</label>')
   return button
+}
+
+function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
+  const charCode = char.charCodeAt(0)
+  const table = $('<table cellspacing="1"></table>')
+    .addClass('glyph')
+    .attr('data-pixels', n)
+    .attr('data-w', w)
+    .attr('data-h', h)
+    .attr('data-char', char)
+    .attr('data-adv', adv)
+    .attr('data-ow', ow)
+    .attr('data-oh', oh)
+    .attr('data-dis', disabled ? 1 : 0)
+
+  const grid = $('<div class="' + window['column_w'] + ' wide column"></div>')
+  const div = $('<div class="ui attached segment inner"></div>')
+
+  div.append(table)
+  div.append('<div class="baseline"></div>')
+  div.append('<div class="xadvance_limit limit"></div>')
+  div.append('<div class="xoffset_limit limit"></div>')
+
+  if (char == ' ') {
+    grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>')
+  } else if (charCode == 173 /* inv. character */) {
+    grid.append('<h2 class="ui top attached segment inner">&nbsp;</h2>')
+  } else  {
+    grid.append('<h2 class="ui top attached segment inner">' + char + '</h2>')
+  }
+
+  grid.append('<div class="ui attached segment inner secondary">' + '0x' + charCode.toString(16).toUpperCase() + '</div>')
+  grid.append(div)
+
+  const buttonBar = $('<div class="ui bottom attached warning message inner"></div>')
+  buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
+  buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
+  buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
+  buttonBar.append(makeUpDownButton('XOff', 'xoff', 'blue', 50))
+  buttonBar.append(makeUpDownButton('XAdv', 'xadv', 'teal', 50))
+  buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 110, disabled))
+
+  grid.append(buttonBar)
+
+  return grid
 }
 
 function setGlyphTable (table) {
@@ -361,6 +456,8 @@ function extractFont () {
   $('#firstglyph').val(window["first"])
   $('#lastglyph').val(window["last"])
 
+  $('#add').attr('disabled', false)
+
   const glyphsArray = window[name + 'Glyphs']
 
   // Calculate the max yAdv to scale the table columns for the glyphs
@@ -369,11 +466,12 @@ function extractFont () {
     maxXAdv = Math.max(maxXAdv, glyphsArray[ind][3])
   }
 
-  let column_w = 'six'
+  window['column_w'] = 'six'
+
   if (maxXAdv <= 10) {
-    column_w = 'two'
+    window['column_w'] = 'two'
   } else if (maxXAdv <= 18) {
-    column_w = 'four'
+    window['column_w'] = 'four'
   }
 
   // Space from the baseline to the top of the character cell is determined by the character with the
@@ -404,43 +502,7 @@ function extractFont () {
       n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
     }
 
-    const table = $('<table cellspacing="1"></table>')
-      .addClass('glyph')
-      .attr('data-pixels', n)
-      .attr('data-w', w)
-      .attr('data-h', h)
-      .attr('data-char', char)
-      .attr('data-adv', adv)
-      .attr('data-ow', ow)
-      .attr('data-oh', oh)
-      .attr('data-dis', 0)
-
-    const grid = $('<div class="' + column_w + ' wide column"></div>')
-    const div = $('<div class="ui attached segment inner"></div>')
-
-    div.append(table)
-    div.append('<div class="baseline"></div>')
-    div.append('<div class="xadvance_limit limit"></div>')
-    div.append('<div class="xoffset_limit limit"></div>')
-
-    if (char == ' ') {
-      grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>')
-    } else {
-      grid.append('<h2 class="ui top attached segment inner">' + char + '</h2>')
-    }
-
-    grid.append('<div class="ui attached segment inner secondary">' + '0x' + (parseInt(window['first'], 16) + parseInt(ind)).toString(16).toUpperCase() + '</div>')
-    grid.append(div)
-
-    const buttonBar = $('<div class="ui bottom attached warning message inner"></div>')
-    buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
-    buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
-    buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
-    buttonBar.append(makeUpDownButton('XOff', 'xoff', 'blue', 50))
-    buttonBar.append(makeUpDownButton('XAdv', 'xadv', 'teal', 50))
-    buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 110))
-
-    grid.append(buttonBar)
+    grid = makeGlyphItem (n, w, h, char, adv, ow, oh, false)
 
     function glyphAppendClosure(el, adv, maxBaseline) {
       setTimeout(function () {
@@ -478,6 +540,15 @@ function displayGlyphTable (maxBaseline) {
 }
 
 $(document).ready(function () {
+
+  $('#new-character-code').parent().hide()
+  $('#add').attr('disabled', 'disabled')
+  $('.ui.checkbox.use-charcode').checkbox()
+  $(document).on('change', '.ui.checkbox.use-charcode input', function (e) {
+    $('#new-character').parent().toggle()
+    $('#new-character-code').parent().toggle()
+  })
+
 
   $('#loader').hide()
   window['name'] = null
@@ -578,6 +649,113 @@ $(document).ready(function () {
     return false
   })
 
+  $(document).on('keyup', '#new-character', function (e) {
+    if ($('#new-character').val() == '') {
+      $('.charcode').text('N/A')
+    } else {
+      $('.charcode').text('0x' + $('#new-character').val().charCodeAt(0).toString(16).toUpperCase())
+    }
+  })
+
+  $(document).on('keyup', '#new-character-code', function (e) {
+    if ($('#new-character-code').val() == '') {
+      $('.character').text('N/A')
+    } else {
+      $('.character').text(String.fromCharCode(parseInt($('#new-character-code').val(), 16)))
+    }
+  })
+
+  $('#add').click(function () {
+    $('input[name=charcode]').prop('checked', false)
+    $('#new-character').parent().show()
+    $('#new-character-code').parent().hide()
+    if ($('#new-character').val() == '') {
+      $('.charcode').text('N/A')
+    } else {
+      $('.charcode').text('0x' + $('#new-character').val().charCodeAt(0).toString(16).toUpperCase())
+    }
+    if ($('#new-character-code').val() == '') {
+      $('.character').text('N/A')
+    } else {
+      $('.character').text(String.fromCharCode($('#new-character-code').val()))
+    }
+    
+    // Choose a character
+    $('.ui.modal.choose').modal({
+      closable: false,
+      onApprove: function() {
+        const firstglyph = parseInt($('#firstglyph').val(), 16)
+        const lastglyph = parseInt($('#lastglyph').val(), 16)
+
+        let newChar
+        let newCharCode
+        if ($('input[name=charcode]').is(':checked')) {
+          newCharCode = parseInt($('#new-character-code').val(), 16)
+          newChar = String.fromCharCode(newCharCode)
+        } else {
+          newChar = $('#new-character').val()
+          newCharCode = $('#new-character').val().charCodeAt(0)
+        }
+
+        if (newChar == '') {
+          $('.ui.modal.message p').text('This character is either blank or incorrect, I\'m not adding it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        if (newCharCode < 1) {
+          $('.ui.modal.message p').text('This is a special control character, I\'m not adding it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        if (newCharCode > 65535) {
+          $('.ui.modal.message p').text('This character is out of range, I\'m not adding it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        // Check that the character is not already existing
+        if (newCharCode > lastglyph || newCharCode < firstglyph) {
+          let start, end;
+          if (newCharCode > lastglyph) {
+            start = lastglyph + 1
+            end = newCharCode
+            window['last'] = '0x' + newCharCode.toString(16).toUpperCase()
+            $('#lastglyph').val(window['last'])
+          } else {
+            start = newCharCode
+            end = firstglyph - 1
+            window['first'] = '0x' + newCharCode.toString(16).toUpperCase()
+            $('#firstglyph').val(window['first'])
+          }
+          
+          if(newCharCode < firstglyph) {
+            for (j = end; j >= start; j--) {
+              const char = String.fromCharCode(parseInt(j))
+              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
+              $('#glyphs').prepend(grid)
+              setGlyphTable(grid.find('.glyph'))
+            }
+          } else {
+            for (j = start; j <= end; j++) {
+              const char = String.fromCharCode(parseInt(j))
+              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
+              $('#glyphs').append(grid)
+              setGlyphTable(grid.find('.glyph'))
+            }
+          }
+          
+        } else {
+          $('.ui.modal.message p').text('This character is already present in the actual set, I\'m not adding it.')
+          $('.ui.modal.message').modal('show')
+        }
+      }
+    })
+    .modal('show');
+
+  })
+
   $('#export').click(function () {
     const glyphs = []
     const bitsArray = []
@@ -619,16 +797,33 @@ $(document).ready(function () {
       const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
       const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
 
-      glyphs.push(
-        ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
-                ('     ' + offset).slice(-5) + ', ' +
-                ('   ' + w).slice(-3) + ', ' +
-                ('   ' + h).slice(-3) + ', ' +
-                ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
-                ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-                ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
-                "// '" + t.attr('data-char') + "'" + (t.attr('data-dis') == 1 ? ' disabled' : ''))
-
+      let char = t.attr('data-char')
+      if (char === "\n") char = "\\n"
+      if (char === "\r") char = "\\r"
+      
+      if(t.attr('data-dis') == 0)
+      {
+        glyphs.push(
+          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+                  ('     ' + offset).slice(-5) + ', ' +
+                  ('   ' + w).slice(-3) + ', ' +
+                  ('   ' + h).slice(-3) + ', ' +
+                  ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
+                  ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
+                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
+                  "// '" + char + "'")
+      } else {
+        glyphs.push(
+          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+                  '    0, ' +
+                  '  0, ' +
+                  '  0, ' +
+                  '  0, ' +
+                  '   0, ' +
+                  '   0 }   ' +
+                  "// '" + char + "' disabled")
+      }
+      
       offset = bitsArray.length
       isFirstCharacter = false
     })

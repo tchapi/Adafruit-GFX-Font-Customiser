@@ -20,6 +20,8 @@ This is useful since the fontconvert utility does not always create all the char
 
 <img src="https://avatars1.githubusercontent.com/u/325326?s=460&v=4" width="50px;"/> [Mats Engstrom](https://github.com/SmallRoomLabs) — fixes to allow generating a range of glyphs
 
+<img src="https://avatars.githubusercontent.com/u/2691293?s=400&v=4" width="50px;"/> [Christof Arnosti](https://github.com/charno) — fixes to allow adding characters, improvements for disabled characters
+
 ## License
 
 MIT. See licence file.
