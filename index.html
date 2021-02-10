@@ -155,7 +155,7 @@
           </a>
         </div>
         <div class="ui right labeled input">
-          <input type="text" id="new-character-code" placeholder="Character code to add (hex)" maxlength="4">
+          <input type="text" id="new-character-code" placeholder="Character code to add (hex)" maxlength="5">
           <a class="ui label">
             Character: <kbd class="character">N/A</kbd>
           </a>
@@ -247,7 +247,7 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
     .attr('data-adv', adv)
     .attr('data-ow', ow)
     .attr('data-oh', oh)
-    .attr('data-dis', 0)
+    .attr('data-dis', disabled ? 1 : 0)
 
   const grid = $('<div class="' + window['column_w'] + ' wide column"></div>')
   const div = $('<div class="ui attached segment inner"></div>')
@@ -729,14 +729,23 @@ $(document).ready(function () {
             window['first'] = '0x' + newCharCode.toString(16).toUpperCase()
             $('#firstglyph').val(window['first'])
           }
-
-          for (j = start; j < end + 1; j++) {
-            const char = String.fromCharCode(parseInt(j))
-
-            const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
-            $('#glyphs').append(grid)
-            setGlyphTable(grid.find('.glyph'))
+          
+          if(newCharCode < firstglyph) {
+            for (j = end; j >= start; j--) {
+              const char = String.fromCharCode(parseInt(j))
+              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
+              $('#glyphs').prepend(grid)
+              setGlyphTable(grid.find('.glyph'))
+            }
+          } else {
+            for (j = start; j <= end; j++) {
+              const char = String.fromCharCode(parseInt(j))
+              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
+              $('#glyphs').apppend(grid)
+              setGlyphTable(grid.find('.glyph'))
+            }
           }
+          
         } else {
           $('.ui.modal.message p').text('This character is already present in the actual set, I\'m not adding it.')
           $('.ui.modal.message').modal('show')
