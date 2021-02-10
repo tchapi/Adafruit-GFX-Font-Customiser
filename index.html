@@ -144,7 +144,7 @@
         <div class="field">
           <div class="ui toggle checkbox use-charcode">
             <input type="checkbox" name="charcode" tabindex="0" class="hidden">
-            <label>Use char code</label>
+            <label>Use char code (hex)</label>
           </div>
         </div>
         </form>
@@ -155,7 +155,7 @@
           </a>
         </div>
         <div class="ui right labeled input">
-          <input type="text" id="new-character-code" placeholder="Character code to add (hex)" maxlength="5">
+          <input type="text" id="new-character-code" placeholder="Character code to add (hex)" maxlength="4">
           <a class="ui label">
             Character: <kbd class="character">N/A</kbd>
           </a>
@@ -661,7 +661,7 @@ $(document).ready(function () {
     if ($('#new-character-code').val() == '') {
       $('.character').text('N/A')
     } else {
-      $('.character').text(String.fromCharCode($('#new-character-code').val()))
+      $('.character').text(String.fromCharCode(parseInt($('#new-character-code').val(), 16)))
     }
   })
 
@@ -690,7 +690,7 @@ $(document).ready(function () {
         let newChar
         let newCharCode
         if ($('input[name=charcode]').is(':checked')) {
-          newCharCode = $('#new-character-code').val()
+          newCharCode = parseInt($('#new-character-code').val(), 16)
           newChar = String.fromCharCode(newCharCode)
         } else {
           newChar = $('#new-character').val()
@@ -741,7 +741,7 @@ $(document).ready(function () {
             for (j = start; j <= end; j++) {
               const char = String.fromCharCode(parseInt(j))
               const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
-              $('#glyphs').apppend(grid)
+              $('#glyphs').append(grid)
               setGlyphTable(grid.find('.glyph'))
             }
           }
