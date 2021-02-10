@@ -274,7 +274,7 @@
     <div class="advance-wrapper"><div class="advance"></div></div>
     <span>Loading and extracting font ...</span>
   </div>
-  <div id="glyphs" class="ui grid"><em>Please paste the content of a font file first</em></div>
+  <div id="glyphs" class="ui grid"><em>Please open or create a font first.</em></div>
 </body>
 <script>
 
@@ -862,6 +862,8 @@ $(document).ready(function () {
         $('.fontname').text(name).show()
         $('#firstglyph').val(window["first"].toString(16))
         $('#lastglyph').val(window["last"].toString(16))
+        $('#glyphs').empty()
+
         
         // Change button states
         $('#add').attr('disabled', false)
