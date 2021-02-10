@@ -797,6 +797,10 @@ $(document).ready(function () {
       const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
       const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
 
+      let char = t.attr('data-char')
+      if (char === "\n") char = "\\n"
+      if (char === "\r") char = "\\r"
+      
       glyphs.push(
         ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
                 ('     ' + offset).slice(-5) + ', ' +
@@ -805,7 +809,7 @@ $(document).ready(function () {
                 ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
                 ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
                 ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
-                "// '" + t.attr('data-char') + "'" + (t.attr('data-dis') == 1 ? ' disabled' : ''))
+                "// '" + char + "'" + (t.attr('data-dis') == 1 ? ' disabled' : ''))
 
       offset = bitsArray.length
       isFirstCharacter = false
