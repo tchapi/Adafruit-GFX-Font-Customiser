@@ -248,12 +248,23 @@
 
   <h2 class="ui header">How to use it</h2>
   <div class="ui explanation">
-    <h5>Importing a font:</h5>
-    <p>Once a font is extracted, you can add new characters to it if they are not present in the original glyphs. Interval characters will be added automatically.</p>
+    <h5>Extracting a font from existing source:</h5>
+    <p>A font can be extracted by copy &amp; pasting existing source.</p>
+    <h5>Creating a font:</h5>
+    <p>A new font with a single character can be created.</p>
+    <h5>Adding characters:</h5>
+    You can add new characters to the open font. Interval characters will be added as disabled glyphs automatically.</p>
+    <h5>Editing glyphs:</h5>
+    Glyphs of the currently open font can be edited. You can:
+    <ul>
+      <li>Enable or disable the glyph</li>
+      <li>Edit the pixels of the glyph</li>
+      <li>Edit all values present in the GFXglyph data structure (See <a href="https://learn.adafruit.com/creating-custom-symbol-font-for-adafruit-gfx-library/understanding-the-font-specification">Adafruit documentation</a>)</li>
+    </ul>
     <h5>When exporting, you can either :</h5>
     <ul>
       <li>Select a range of characters to include in the output. Characters outside of this range will <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
-      <li>Disable individual characters. The disabled characters simply points to the same location in the bitmap as the previous character and gets its bitmap width and height set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li>
+      <li>Disable individual characters. The disabled characters get all values set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li>
     </ul>
   </div>
   <h2 class="ui header">Separate glyphs (<em class="fontname" style="display: none;">FontName unknown</em>)</h2>
