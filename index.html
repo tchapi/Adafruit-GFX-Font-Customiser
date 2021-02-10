@@ -267,7 +267,7 @@
       <li>Disable individual characters. The disabled characters get all values set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li>
     </ul>
   </div>
-  <h2 class="ui header">Separate glyphs (<em class="fontname" style="display: none;">FontName unknown</em>)</h2>
+  <h2 class="ui header">Separate glyphs <em class="fontname" style="display: none;">FontName unknown</em></h2>
   <p><button class="ui small button blue" id="add" disabled="disabled"><i class="icon add"></i> Add a new character</button></p>
 
   <div id="loader">
@@ -510,7 +510,7 @@ function extractFont () {
       console.log(window[name + "Glyphs"])
       */
 
-  $('.fontname').text(window['name']).show()
+  $('.fontname').text('(' + window['name'].slice(0, window['name'].length - 1) + ')').show()
   $('#firstglyph').val(window["first"])
   $('#lastglyph').val(window["last"])
 
@@ -859,7 +859,7 @@ $(document).ready(function () {
         window['last_part'] = 'const GFXfont ' + name + ' PROGMEM = {(uint8_t *) ' + name + '_Bitmaps, (GFXglyph *)' + name + '_Glyphs, 0x00, 0x00, ' + newfontHeight + '};'
         
         // Show the data
-        $('.fontname').text(name).show()
+        $('.fontname').text('(' + name + ')').show()
         $('#firstglyph').val(window["first"].toString(16))
         $('#lastglyph').val(window["last"].toString(16))
         $('#glyphs').empty()
