@@ -144,7 +144,7 @@
         <div class="field">
           <div class="ui toggle checkbox use-charcode">
             <input type="checkbox" name="charcode" tabindex="0" class="hidden">
-            <label>Use char code</label>
+            <label>Use char code (hex)</label>
           </div>
         </div>
         </form>
@@ -247,7 +247,7 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
     .attr('data-adv', adv)
     .attr('data-ow', ow)
     .attr('data-oh', oh)
-    .attr('data-dis', 0)
+    .attr('data-dis', disabled ? 1 : 0)
 
   const grid = $('<div class="' + window['column_w'] + ' wide column"></div>')
   const div = $('<div class="ui attached segment inner"></div>')
@@ -661,7 +661,7 @@ $(document).ready(function () {
     if ($('#new-character-code').val() == '') {
       $('.character').text('N/A')
     } else {
-      $('.character').text(String.fromCharCode($('#new-character-code').val()))
+      $('.character').text(String.fromCharCode(parseInt($('#new-character-code').val(), 16)))
     }
   })
 
@@ -690,7 +690,7 @@ $(document).ready(function () {
         let newChar
         let newCharCode
         if ($('input[name=charcode]').is(':checked')) {
-          newCharCode = $('#new-character-code').val()
+          newCharCode = parseInt($('#new-character-code').val(), 16)
           newChar = String.fromCharCode(newCharCode)
         } else {
           newChar = $('#new-character').val()
@@ -729,14 +729,23 @@ $(document).ready(function () {
             window['first'] = '0x' + newCharCode.toString(16).toUpperCase()
             $('#firstglyph').val(window['first'])
           }
-
-          for (j = start; j < end + 1; j++) {
-            const char = String.fromCharCode(parseInt(j))
-
-            const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
-            $('#glyphs').append(grid)
-            setGlyphTable(grid.find('.glyph'))
+          
+          if(newCharCode < firstglyph) {
+            for (j = end; j >= start; j--) {
+              const char = String.fromCharCode(parseInt(j))
+              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
+              $('#glyphs').prepend(grid)
+              setGlyphTable(grid.find('.glyph'))
+            }
+          } else {
+            for (j = start; j <= end; j++) {
+              const char = String.fromCharCode(parseInt(j))
+              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
+              $('#glyphs').append(grid)
+              setGlyphTable(grid.find('.glyph'))
+            }
           }
+          
         } else {
           $('.ui.modal.message p').text('This character is already present in the actual set, I\'m not adding it.')
           $('.ui.modal.message').modal('show')
@@ -788,16 +797,33 @@ $(document).ready(function () {
       const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
       const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
 
-      glyphs.push(
-        ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
-                ('     ' + offset).slice(-5) + ', ' +
-                ('   ' + w).slice(-3) + ', ' +
-                ('   ' + h).slice(-3) + ', ' +
-                ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
-                ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-                ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
-                "// '" + t.attr('data-char') + "'" + (t.attr('data-dis') == 1 ? ' disabled' : ''))
-
+      let char = t.attr('data-char')
+      if (char === "\n") char = "\\n"
+      if (char === "\r") char = "\\r"
+      
+      if(t.attr('data-dis') == 0)
+      {
+        glyphs.push(
+          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+                  ('     ' + offset).slice(-5) + ', ' +
+                  ('   ' + w).slice(-3) + ', ' +
+                  ('   ' + h).slice(-3) + ', ' +
+                  ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
+                  ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
+                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
+                  "// '" + char + "'")
+      } else {
+        glyphs.push(
+          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+                  '    0, ' +
+                  '  0, ' +
+                  '  0, ' +
+                  '  0, ' +
+                  '   0, ' +
+                  '   0 }   ' +
+                  "// '" + char + "' disabled")
+      }
+      
       offset = bitsArray.length
       isFirstCharacter = false
     })
