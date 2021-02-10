@@ -294,6 +294,7 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
     .attr('data-ow', ow)
     .attr('data-oh', oh)
     .attr('data-dis', disabled ? 1 : 0)
+    .css('opacity', disabled ? 0.1 : 1)
 
   const grid = $('<div class="' + window['column_w'] + ' wide column"></div>')
   const div = $('<div class="ui attached segment inner"></div>')
