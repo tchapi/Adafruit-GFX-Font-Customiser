@@ -480,6 +480,7 @@ function extractFont () {
   }
 
   $('#glyphs').empty()
+  $('#glyphs').hide()
 
   // extract GFXFont part
   const last_part_re = /const\ GFXfont([\s\S]*)/g
@@ -595,6 +596,7 @@ function displayGlyphTable (maxBaseline) {
         setGlyphTable(el.children().find('.glyph'))
         if (adv === 1) {
           $('#loader').hide()
+          $('#glyphs').show()
         }
       }, 1)
     }
