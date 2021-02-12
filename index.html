@@ -117,6 +117,13 @@
     #add {
       margin-top: 10px;
     }
+
+    span.np {
+      font-size: 0.5em;
+      color: #CCC;
+      font-style: italic;
+    }
+
    </style>
 </head>
 <body>
@@ -337,11 +344,10 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
   div.append('<div class="xoffset_limit limit"></div>')
 
   if (char == ' ') {
-    grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>')
-  } else if (charCode == 173 /* inv. character */) {
-    grid.append('<h2 class="ui top attached segment inner">&nbsp;</h2>')
+    grid.append('<h2 class="ui top attached segment inner"><span class="np">space</span></h2>')
   } else  {
-    grid.append('<h2 class="ui top attached segment inner">' + char + '</h2>')
+    // Display a specific text for non-printable characters
+    grid.append('<h2 class="ui top attached segment inner">' + char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, '<span class="np">non-printable</span>') + '</h2>')
   }
 
   grid.append('<div class="ui attached segment inner secondary">' + '0x' + charCode.toString(16).toUpperCase() + '</div>')
