@@ -145,7 +145,7 @@
             <textarea id="source"></textarea>
           </div>
             <button class="ui button teal" id="extract"><i class="icon upload"></i> Extract</button>
-            <button class="ui button red right floated" id="reset"><i class="icon redo"></i> Reset</button>
+            <button class="ui button red right floated" id="reset" disabled><i class="icon undo"></i> Reset</button>
             <button class="ui button blue right floated" id="createFont"><i class="icon file outline"></i> Create a new font</button>
         </div>
       </div>
@@ -233,6 +233,17 @@
       </div>
       <div class="actions">
         <div class="ui approve blue button">Ok</div>
+      </div>
+    </div>
+    
+    <div class="ui small modal confirmation">
+      <div class="header">⚠️ Warning</div>
+      <div class="content">
+        <p></p>
+      </div>
+      <div class="actions">
+        <div class="ui cancel blue button">Cancel</div>
+        <div class="ui approve red button">Reset</div>
       </div>
     </div>
 
@@ -606,6 +617,7 @@ function extractFont () {
   }
   
   $('#export').prop( "disabled", false )
+  $('#reset').prop("disabled", false)
   $('#createFont').prop( "disabled", true )
   $('#extract').prop( "disabled", true )
 }
@@ -635,6 +647,7 @@ $(document).ready(function () {
   $('#new-character-code').parent().hide()
   $('#add').attr('disabled', 'disabled')
   $('#export').attr('disabled', 'disabled')
+  $('#reset').prop("disabled", 'disabled')
   $('.ui.checkbox.use-charcode').checkbox()
 
   $(document).on('change', '.ui.checkbox.use-charcode input', function (e) {
@@ -691,13 +704,21 @@ $(document).ready(function () {
   })
 
   $('#reset').click(function () {
-    $('#glyphs').empty()
-    $('#source').val('')
-    $('#createFont').prop("disabled", false)
-    $('#extract').prop("disabled", false)
-    $('#add').prop("disabled", "disabled")
-    $('#export').prop("disabled", "disabled")
-    $('.fontname').text('Fontname unknown').hide()
+  
+    $('.ui.modal.confirmation p').text('The reset will close the font and discard any changes you made.')
+    $('.ui.modal.confirmation').modal({
+      closable: false,
+      onApprove: function() {
+        $('#glyphs').empty()
+        $('#source').val('')
+        $('#createFont').prop("disabled", false)
+        $('#extract').prop("disabled", false)
+        $('#add').prop("disabled", "disabled")
+        $('#export').prop("disabled", "disabled")
+        $('#reset').prop("disabled", "disabled")
+        $('.fontname').text('Fontname unknown').hide()
+      }
+    }).modal('show')
   })
 
   $(document).on('click', '.cell', function (e) {
@@ -907,6 +928,7 @@ $(document).ready(function () {
         $('#export').prop( "disabled", false )
         $('#createFont').prop( "disabled", true )
         $('#extract').prop( "disabled", true )
+        $('#reset').prop("disabled", false)
         
         // Add the new character
         const grid = makeGlyphItem (' ' , 1, 1, newChar, 4, 0, -newfontHeight, false)
