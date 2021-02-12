@@ -118,7 +118,7 @@
 
   <h1 class="ui header">Adafruit GFX Pixel font customiser</h1>
   <p>
-    <em>Created by <a href="https://github.com/tchapi">tchapi</a>, major improvements by <a href="https://github.com/cmarrin">cmarrin</a> - Source code available on <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em>
+    <em>Created by <a href="https://github.com/tchapi">tchapi</a>, major improvements by <a href="https://github.com/cmarrin">cmarrin</a> and <a href="https://github.com/charno">charno</a> - Source code available on <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em>
   </p>
 
   <div class="ui divider"></div>
@@ -174,7 +174,7 @@
     <div class="ui small modal newfont">
       <div class="header">Create a new font</div>
       <div class="content">
-        <p>To create a new font we need some information.</p>
+        <p>To create a new font, you need to provide some details.</p>
         <form class="ui form">
         <div class="field">
           <label>Font name</label>
@@ -187,7 +187,7 @@
         </div>
         <div class="field">
           <label>First character</label>
-          <p>The new font will be created with one character. You cann add more characters later.</p>
+          <p>The new font will be created with one character. You can add more characters later.</p>
           <div class="ui toggle checkbox newfont-use-charcode">
             <input type="checkbox" name="newfontCharcode" tabindex="0" class="hidden">
             <label>Use char code (hex)</label>
@@ -247,29 +247,44 @@
     </div>
   </div>
 
+  <div class="ui divider"></div>
+
   <h2 class="ui header">How to use it</h2>
-  <div class="ui explanation">
-    <h5>Extracting a font from existing source:</h5>
-    <p>A font can be extracted by copy &amp; pasting existing source.</p>
-    <h5>Creating a font:</h5>
-    <p>A new font with a single character can be created.</p>
-    <h5>Adding characters:</h5>
-    You can add new characters to the open font. Interval characters will be added as disabled glyphs automatically.</p>
-    <h5>Editing glyphs:</h5>
-    Glyphs of the currently open font can be edited. You can:
-    <ul>
-      <li>Enable or disable the glyph</li>
-      <li>Edit the pixels of the glyph</li>
-      <li>Edit all values present in the GFXglyph data structure (See <a href="https://learn.adafruit.com/creating-custom-symbol-font-for-adafruit-gfx-library/understanding-the-font-specification">Adafruit documentation</a>)</li>
-    </ul>
-    <h5>When exporting, you can either :</h5>
-    <ul>
-      <li>Select a range of characters to include in the output. Characters outside of this range will <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
-      <li>Disable individual characters. The disabled characters get all values set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li>
-    </ul>
+  <div class="ui grid">
+    <div class="five wide column">
+      <div class="ui explanation">
+        <h5>Importing or creating a font:</h5>
+        You can either:
+        <ul>
+          <li>Extract a font by copying &amp; pasting the existing font source (a <kbd>.h</kbd> file) in the textarea above</li>
+          <li>Create a new font with a single character</li>
+        </ul>
+        <h5>Adding characters:</h5>
+        <p>You can easily add new characters to the font afterwards. Interval characters will be added automatically <em>as disabled glyphs</em>.</p>
+      </div>
+    </div>
+    <div class="eleven wide column">
+      <div class="ui explanation">
+        <h5>Editing glyphs:</h5>
+        Glyphs can be edited individually. You can:
+        <ul>
+          <li>Enable or disable the glyph</li>
+          <li>Edit each pixel of the glyph</li>
+          <li>Edit all values present in the GFXglyph data structure (See <a href="https://learn.adafruit.com/creating-custom-symbol-font-for-adafruit-gfx-library/understanding-the-font-specification">Adafruit documentation</a> for more information)</li>
+        </ul>
+        <h5>When exporting, you can either :</h5>
+        <ul>
+          <li>Select a range of characters to include in the output. Characters outside of this range will <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
+          <li>Disable individual characters. The disabled characters get all values set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li>
+        </ul>
+      </div>
+    </div>
   </div>
-  <h2 class="ui header">Separate glyphs <em class="fontname" style="display: none;">FontName unknown</em></h2>
-  <p><button class="ui small button blue" id="add" disabled="disabled"><i class="icon add"></i> Add a new character</button></p>
+  
+  <div class="ui divider"></div>
+
+  <h2 class="ui header">Glyphs <em class="fontname" style="display: none;">FontName unknown</em></h2>
+  <p><button class="ui small button violet" id="add" disabled="disabled"><i class="icon add"></i> Add a new character</button></p>
 
   <div id="loader">
     <div class="advance-wrapper"><div class="advance"></div></div>
