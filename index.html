@@ -862,8 +862,8 @@ $(document).ready(function () {
         
         // Show the data
         $('.fontname').text('(' + name + ')').show()
-        $('#firstglyph').val(window["first"].toString(16))
-        $('#lastglyph').val(window["last"].toString(16))
+        $('#firstglyph').val('0x' + window["first"].toString(16))
+        $('#lastglyph').val('0x' + window["last"].toString(16))
         $('#glyphs').empty()
 
         
