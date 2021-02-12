@@ -134,6 +134,7 @@
             <textarea id="source"></textarea>
           </div>
             <button class="ui button teal" id="extract"><i class="icon upload"></i> Extract</button>
+            <button class="ui button red right floated" id="reset"><i class="icon redo"></i> Reset</button>
         </div>
       </div>
     </div>
@@ -663,6 +664,13 @@ $(document).ready(function () {
     $('#loader').fadeIn(function() {
       extractFont()
     })
+  })
+
+  $('#reset').click(function () {
+    $('#glyphs').empty()
+    $('#source').val('')
+    $('#createFont').prop("disabled", false)
+    $('#extract').prop("disabled", false)
   })
 
   $(document).on('click', '.cell', function (e) {
