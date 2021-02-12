@@ -21,6 +21,12 @@
       margin: 0;
       padding-left: 14px;
     }
+
+    .explanation h5 {
+      margin-bottom: 4px;
+      margin-top: 4px;
+    }
+
     #glyphs div.inner {
       padding: 10px;
       text-align: center;
@@ -111,6 +117,13 @@
     #add {
       margin-top: 10px;
     }
+
+    span.np {
+      font-size: 0.5em;
+      color: #CCC;
+      font-style: italic;
+    }
+
    </style>
 </head>
 <body>
@@ -118,7 +131,7 @@
 
   <h1 class="ui header">Adafruit GFX Pixel font customiser</h1>
   <p>
-    <em>Created by <a href="https://github.com/tchapi">tchapi</a>, major improvements by <a href="https://github.com/cmarrin">cmarrin</a> - Source code available on <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em>
+    <em>Created by <a href="https://github.com/tchapi">tchapi</a>, major improvements by <a href="https://github.com/cmarrin">cmarrin</a> and <a href="https://github.com/charno">charno</a> - Source code available on <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em>
   </p>
 
   <div class="ui divider"></div>
@@ -128,10 +141,12 @@
       <div class="ui teal segment">
         <div class="ui form">
           <div class="field">
-            <label>Original font file <em class="fontname" style="display: none;">FontName unknown</em></label>
+            <label>Extract font from source</label>
             <textarea id="source"></textarea>
           </div>
-            <button class="ui button teal" id="extract">Extract</button>
+            <button class="ui button teal" id="extract"><i class="icon upload"></i> Extract</button>
+            <button class="ui button red right floated" id="reset"><i class="icon redo"></i> Reset</button>
+            <button class="ui button blue right floated" id="createFont"><i class="icon file outline"></i> Create a new font</button>
         </div>
       </div>
     </div>
@@ -166,6 +181,50 @@
         <div class="ui approve green button">Add</div>
       </div>
     </div>
+    
+    
+    <div class="ui small modal newfont">
+      <div class="header">Create a new font</div>
+      <div class="content">
+        <p>To create a new font, you need to provide some details.</p>
+        <form class="ui form">
+        <div class="field">
+          <label>Font name</label>
+          <input type="text" id="newfont-name" placeholder="Name of the new font">
+        </div>
+        <div class="field">
+          <label>Font height</label>
+          <p>Font height in pixels</p>
+          <input id="newfont-height"  type="number" value="1" min="1" placeholder="Height of the new font">
+        </div>
+        <div class="field">
+          <label>First character</label>
+          <p>The new font will be created with one character. You can add more characters later.</p>
+          <div class="ui toggle checkbox newfont-use-charcode">
+            <input type="checkbox" name="newfontCharcode" tabindex="0" class="hidden">
+            <label>Use char code (hex)</label>
+          </div>
+        </div>
+
+        </form>
+        <div class="ui right labeled input">
+          <input type="text" id="newfont-new-character" placeholder="Character to add" maxlength="1">
+          <a class="ui label">
+            Char Code: <kbd class="newfontCharcode">N/A</kbd>
+          </a>
+        </div>
+        <div class="ui right labeled input">
+          <input type="text" id="newfont-new-character-code" placeholder="Character code to add (hex)" maxlength="4">
+          <a class="ui label">
+            Character: <kbd class="newfontCharacter">N/A</kbd>
+          </a>
+        </div>
+      </div>
+      <div class="actions">
+        <div class="ui cancel red button">Cancel</div>
+        <div class="ui approve green button">Create</div>
+      </div>
+    </div>
 
     <div class="ui small modal message">
       <div class="header">⚠️ Warning</div>
@@ -194,30 +253,56 @@
               <input type="text" id="lastglyph" value="0x00" />
             </div>
           </div>
-          <button class="ui button green" id="export">Process and create file</button>
+          <button class="ui button green" id="export" disabled="disabled"><i class="icon download"></i> Process and create file</button>
         </div>
       </div>
     </div>
   </div>
 
+  <div class="ui divider"></div>
+
   <h2 class="ui header">How to use it</h2>
-  <div class="ui explanation">
-    <h5>Importing a font:</h5>
-    <p>Once a font is extracted, you can add new characters to it if they are not present in the original glyphs. Interval characters will be added automatically.</p>
-    <h5>When exporting, you can either :</h5>
-    <ul>
-      <li>Select a range of characters to include in the output. Characters outside of this range will <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
-      <li>Disable individual characters. The disabled characters simply points to the same location in the bitmap as the previous character and gets its bitmap width and height set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li>
-    </ul>
+  <div class="ui grid">
+    <div class="five wide column">
+      <div class="ui explanation">
+        <h5>Importing or creating a font:</h5>
+        You can either:
+        <ul>
+          <li>Extract a font by copying &amp; pasting the existing font source (a <kbd>.h</kbd> file) in the textarea above</li>
+          <li>Create a new font with a single character</li>
+        </ul>
+        <h5>Adding characters:</h5>
+        <p>You can easily add new characters to the font afterwards. Interval characters will be added automatically <em>as disabled glyphs</em>.</p>
+      </div>
+    </div>
+    <div class="eleven wide column">
+      <div class="ui explanation">
+        <h5>Editing glyphs:</h5>
+        Glyphs can be edited individually. You can:
+        <ul>
+          <li>Enable or disable the glyph</li>
+          <li>Edit each pixel of the glyph</li>
+          <li>Edit all values present in the GFXglyph data structure (See <a href="https://learn.adafruit.com/creating-custom-symbol-font-for-adafruit-gfx-library/understanding-the-font-specification">Adafruit documentation</a> for more information)</li>
+        </ul>
+        <h5>When exporting, you can either :</h5>
+        <ul>
+          <li>Select a range of characters to include in the output. Characters outside of this range will <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
+          <li>Disable individual characters. The disabled characters get all values set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li>
+        </ul>
+      </div>
+    </div>
   </div>
-  <h2 class="ui header">Separate glyphs</h2>
-  <p><button class="ui small button blue" id="add" disabled="disabled"><i class="icon add"></i> Add a new character</button></p>
+  
+  <div class="ui divider"></div>
+
+  <h2 class="ui header">Glyphs <em class="fontname" style="display: none;">FontName unknown</em></h2>
+  <p><button class="ui small button violet" id="add" disabled="disabled"><i class="icon add"></i> Add a new character</button></p>
 
   <div id="loader">
     <div class="advance-wrapper"><div class="advance"></div></div>
     <span>Loading and extracting font ...</span>
   </div>
-  <div id="glyphs" class="ui grid"><em>Please paste the content of a font file first</em></div>
+  <div id="glyphs" class="ui grid"><em>Please open or create a font first.</em></div>
 </body>
 <script>
 
@@ -248,6 +333,7 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
     .attr('data-ow', ow)
     .attr('data-oh', oh)
     .attr('data-dis', disabled ? 1 : 0)
+    .css('opacity', disabled ? 0.1 : 1)
 
   const grid = $('<div class="' + window['column_w'] + ' wide column"></div>')
   const div = $('<div class="ui attached segment inner"></div>')
@@ -258,11 +344,10 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
   div.append('<div class="xoffset_limit limit"></div>')
 
   if (char == ' ') {
-    grid.append('<h2 class="ui top attached segment inner"><small><em>space</em></small></h2>')
-  } else if (charCode == 173 /* inv. character */) {
-    grid.append('<h2 class="ui top attached segment inner">&nbsp;</h2>')
+    grid.append('<h2 class="ui top attached segment inner"><span class="np">space</span></h2>')
   } else  {
-    grid.append('<h2 class="ui top attached segment inner">' + char + '</h2>')
+    // Display a specific text for non-printable characters
+    grid.append('<h2 class="ui top attached segment inner">' + char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, '<span class="np">non-printable</span>') + '</h2>')
   }
 
   grid.append('<div class="ui attached segment inner secondary">' + '0x' + charCode.toString(16).toUpperCase() + '</div>')
@@ -452,7 +537,7 @@ function extractFont () {
       console.log(window[name + "Glyphs"])
       */
 
-  $('.fontname').text(window['name']).show()
+  $('.fontname').text('(' + window['name'].slice(0, window['name'].length - 1) + ')').show()
   $('#firstglyph').val(window["first"])
   $('#lastglyph').val(window["last"])
 
@@ -501,8 +586,10 @@ function extractFont () {
     for (let k = 0; k < (nextOffset - currentOffset); k++) {
       n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
     }
+    
+    let disabled = (w == 0 || h == 0) && adv == 0
 
-    grid = makeGlyphItem (n, w, h, char, adv, ow, oh, false)
+    grid = makeGlyphItem (n, w, h, char, adv, ow, oh, disabled)
 
     function glyphAppendClosure(el, adv, maxBaseline) {
       setTimeout(function () {
@@ -517,6 +604,10 @@ function extractFont () {
 
     glyphAppendClosure(grid, (parseInt(ind) + 1) / glyphsArray.length, maxBaseline)
   }
+  
+  $('#export').prop( "disabled", false )
+  $('#createFont').prop( "disabled", true )
+  $('#extract').prop( "disabled", true )
 }
 
 function displayGlyphTable (maxBaseline) {
@@ -543,11 +634,49 @@ $(document).ready(function () {
 
   $('#new-character-code').parent().hide()
   $('#add').attr('disabled', 'disabled')
+  $('#export').attr('disabled', 'disabled')
   $('.ui.checkbox.use-charcode').checkbox()
+
   $(document).on('change', '.ui.checkbox.use-charcode input', function (e) {
     $('#new-character').parent().toggle()
     $('#new-character-code').parent().toggle()
+    
+    if($('input[name=charcode]').is(':checked')) {
+      if ($('#new-character-code').val() == '') {
+        $('.character').text('N/A')
+      } else {
+        $('.character').text(String.fromCharCode(parseInt($('#new-character-code').val(), 16)))
+      }
+    } else {
+      if ($('#new-character').val() == '') {
+        $('.charcode').text('N/A')
+      } else {
+        $('.charcode').text('0x' + $('#new-character').val().charCodeAt(0).toString(16).toUpperCase())
+      }
+    }
   })
+  
+  $('#newfont-new-character-code').parent().hide()
+  $('.ui.checkbox.newfont-use-charcode').checkbox()
+  $(document).on('change', '.ui.checkbox.newfont-use-charcode input', function (e) {
+    $('#newfont-new-character').parent().toggle()
+    $('#newfont-new-character-code').parent().toggle()
+    
+    if($('input[name=newfontCharcode]').is(':checked')) {
+      if ($('#newfont-new-character-code').val() == '') {
+        $('.newfontCharacter').text('N/A')
+      } else {
+        $('.newfontCharacter').text(String.fromCharCode(parseInt($('#newfont-new-character-code').val(), 16)))
+      }
+    } else {
+      if ($('#newfont-new-character').val() == '') {
+        $('.newfontCharcode').text('N/A')
+      } else {
+        $('.newfontCharcode').text('0x' + $('#newfont-new-character').val().charCodeAt(0).toString(16).toUpperCase())
+      }
+    }
+  })
+
 
 
   $('#loader').hide()
@@ -559,6 +688,16 @@ $(document).ready(function () {
     $('#loader').fadeIn(function() {
       extractFont()
     })
+  })
+
+  $('#reset').click(function () {
+    $('#glyphs').empty()
+    $('#source').val('')
+    $('#createFont').prop("disabled", false)
+    $('#extract').prop("disabled", false)
+    $('#add').prop("disabled", "disabled")
+    $('#export').prop("disabled", "disabled")
+    $('.fontname').text('Fontname unknown').hide()
   })
 
   $(document).on('click', '.cell', function (e) {
@@ -664,6 +803,120 @@ $(document).ready(function () {
       $('.character').text(String.fromCharCode(parseInt($('#new-character-code').val(), 16)))
     }
   })
+  
+  $(document).on('keyup', '#newfont-new-character', function (e) {
+    if ($('#newfont-new-character').val() == '') {
+      $('.newfontCharcode').text('N/A')
+    } else {
+      $('.newfontCharcode').text('0x' + $('#newfont-new-character').val().charCodeAt(0).toString(16).toUpperCase())
+    }
+  })
+
+  $(document).on('keyup', '#newfont-new-character-code', function (e) {
+    if ($('#newfont-new-character-code').val() == '') {
+      $('.newfontCharacter').text('N/A')
+    } else {
+      $('.newfontCharacter').text(String.fromCharCode(parseInt($('#newfont-new-character-code').val(), 16)))
+    }
+  })
+  
+  $('#createFont').click(function () {
+    $('input[name=newfontCharcode]').prop('checked', false)
+    $('#newfont-new-character').parent().show()
+    $('#newfont-new-character-code').parent().hide()
+    if ($('#newfont-new-character').val() == '') {
+      $('.charcode').text('N/A')
+    } else {
+      $('.charcode').text('0x' + $('#newfont-new-character').val().charCodeAt(0).toString(16).toUpperCase())
+    }
+    if ($('#newfont-new-character-code').val() == '') {
+      $('.character').text('N/A')
+    } else {
+      $('.character').text(String.fromCharCode($('#newfont-new-character-code').val()))
+    }
+    
+    $('.ui.modal.newfont').modal({
+      closable: false,
+      
+      onApprove: function() {
+        let name = $('#newfont-name').val()
+        if (name.length < 1) {
+          $('.ui.modal.message p').text('The font must have a name, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+        
+        
+        let newfontHeight = parseInt($('#newfont-height').val())
+        if (newfontHeight < 1) {
+          $('.ui.modal.message p').text('The font height must be greater than 0, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+        
+        
+        // Get new character data
+        let newChar
+        let newCharCode
+        if ($('input[name=newfontCharcode]').is(':checked')) {
+          newCharCode = parseInt($('#newfont-new-character-code').val(), 16)
+          newChar = String.fromCharCode(newCharCode)
+        } else {
+          newChar = $('#newfont-new-character').val()
+          newCharCode = $('#newfont-new-character').val().charCodeAt(0)
+        }
+
+        // Check character validity
+        if (newChar == '') {
+          $('.ui.modal.message p').text('This character is either blank or incorrect, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        if (newCharCode < 1) {
+          $('.ui.modal.message p').text('This is a special control character, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        if (newCharCode > 65535) {
+          $('.ui.modal.message p').text('This character is out of range, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+        
+        // Set the font parameters
+        window['first'] = newCharCode
+        window['last'] = newCharCode
+        window['yAdvance'] = newfontHeight
+        window['name'] = name + '_'
+        window[name + '_Bitmaps'] = [] // This is otherwise created by the eval() in extract font
+        window['column_w'] = 'four' // Just took some value
+        window['maxBaseline'] = newfontHeight
+        window['last_part'] = 'const GFXfont ' + name + ' PROGMEM = {(uint8_t *) ' + name + '_Bitmaps, (GFXglyph *)' + name + '_Glyphs, 0x00, 0x00, ' + newfontHeight + '};'
+        
+        // Show the data
+        $('.fontname').text('(' + name + ')').show()
+        $('#firstglyph').val('0x' + window["first"].toString(16))
+        $('#lastglyph').val('0x' + window["last"].toString(16))
+        $('#glyphs').empty()
+
+        
+        // Change button states
+        $('#add').attr('disabled', false)
+        $('#export').prop( "disabled", false )
+        $('#createFont').prop( "disabled", true )
+        $('#extract').prop( "disabled", true )
+        
+        // Add the new character
+        const grid = makeGlyphItem (' ' , 1, 1, newChar, 4, 0, -newfontHeight, false)
+        $('#glyphs').append(grid)
+        
+        setGlyphTable(grid.find('.glyph'))
+      }
+      })
+    .modal('show')
+  })
 
   $('#add').click(function () {
     $('input[name=charcode]').prop('checked', false)
@@ -733,14 +986,14 @@ $(document).ready(function () {
           if(newCharCode < firstglyph) {
             for (j = end; j >= start; j--) {
               const char = String.fromCharCode(parseInt(j))
-              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
+              const grid = makeGlyphItem (' ', 1, 1, char, 4, 0, -window['maxBaseline'], !(j === newCharCode))
               $('#glyphs').prepend(grid)
               setGlyphTable(grid.find('.glyph'))
             }
           } else {
             for (j = start; j <= end; j++) {
               const char = String.fromCharCode(parseInt(j))
-              const grid = makeGlyphItem (' ', 0, 0, char, 4 * (j === newCharCode), 0, 1 * (j === newCharCode), !(j === newCharCode))
+              const grid = makeGlyphItem (' ', 1, 1, char, 4, 0, -window['maxBaseline'], !(j === newCharCode))
               $('#glyphs').append(grid)
               setGlyphTable(grid.find('.glyph'))
             }
