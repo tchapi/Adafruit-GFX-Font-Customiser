@@ -692,6 +692,9 @@ $(document).ready(function () {
     $('#source').val('')
     $('#createFont').prop("disabled", false)
     $('#extract').prop("disabled", false)
+    $('#add').prop("disabled", "disabled")
+    $('#export').prop("disabled", "disabled")
+    $('.fontname').text('Fontname unknown').hide()
   })
 
   $(document).on('click', '.cell', function (e) {
