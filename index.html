@@ -28,41 +28,54 @@
     }
 
     #glyphs div.inner {
-      padding: 10px;
-      text-align: center;
+      padding: 10px 0;
       position: relative;
     }
+    #glyphs .centered.inner {
+      padding: 10px;
+      text-align: center;
+    }
+
     #glyphs h2.inner {
       font-size: 2em;
       padding: 0.3em;
       text-align: center;
     }
-    #glyphs table {
-      border: 1px solid black;
-      margin: 0;
-      width: 100%;
-      table-layout: fixed;
-      border-collapse: collapse;
+    #glyphs div.table {
       user-select: none;
+      position: relative;
+      width: max-content;
+      margin: auto;
     }
-    #glyphs table tr {
+    #glyphs div.table div.row {
       height: 10px;
+      position: relative;
     }
-    #glyphs table td {
-      border: 1px solid lightgrey;
+    #glyphs div.table div.row:first-child div.cell {
+      height: 10px;
+      border-top: 1px solid lightgrey;
+    }
+    #glyphs div.table div.cell {
+      border-bottom: 1px solid lightgrey;
+      border-right: 1px solid lightgrey;
       width: 10px;
+      height: 10px;
+      display: inline-block;
       cursor: pointer;
     }
-    #glyphs table td.cell.fill {
+    #glyphs div.table div.cell:first-child {
+      border-left: 1px solid lightgrey;
+    }
+    #glyphs div.table div.cell.fill {
       background: black;
     }
-    #glyphs table td.cell:hover {
+    #glyphs div.table div.cell:hover {
       background: #999;
     }
-    #glyphs table td.cell.fill.over {
+    #glyphs div.table div.cell.fill.over {
       box-shadow: 0 0 9px #D00 inset;
     }
-    #glyphs table td.cell.dead {
+    #glyphs div.table div.cell.dead {
       background: #DDD;
     }
     #loader {
@@ -100,9 +113,9 @@
       position:absolute;
       left:0px;
       width:100%;
-      height:2px;
+      height:1px;
       background-color:#090;
-      opacity:0.4;
+      opacity:0.6;
       pointer-events: none;
     }
     .limit {
@@ -124,6 +137,20 @@
       font-style: italic;
     }
 
+    .ui.grid > .column:not(.row), .ui.grid > .row > .column {
+      padding-left: 0.25rem;
+      padding-right: 0.25rem;
+    }
+
+    /* Fix Semantic UI bug */
+    @media screen and (min-width: 1920px) {
+      .ui.column.grid > [class*="two wide large screen"].column,
+      .ui.grid > .column.row > [class*="two wide large screen"].column,
+      .ui.grid > .row > [class*="two wide large screen"].column,
+      .ui.grid > [class*="two wide large screen"].column {
+        width: 12.5% !important;
+      }
+    }
    </style>
 </head>
 <body>
@@ -334,7 +361,7 @@ function makeCheckButton (name, func, color, width, disabled) {
 
 function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
   const charCode = char.charCodeAt(0)
-  const table = $('<table cellspacing="1"></table>')
+  const table = $('<div class="table"></div>')
     .addClass('glyph')
     .attr('data-pixels', n)
     .attr('data-w', w)
@@ -346,13 +373,10 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
     .attr('data-dis', disabled ? 1 : 0)
     .css('opacity', disabled ? 0.1 : 1)
 
-  const grid = $('<div class="' + window['column_w'] + ' wide column"></div>')
+  const grid = $('<div class="sixteen wide mobile eight wide tablet four wide computer two wide large screen column"></div>')
   const div = $('<div class="ui attached segment inner"></div>')
 
   div.append(table)
-  div.append('<div class="baseline"></div>')
-  div.append('<div class="xadvance_limit limit"></div>')
-  div.append('<div class="xoffset_limit limit"></div>')
 
   if (char == ' ') {
     grid.append('<h2 class="ui top attached segment inner"><span class="np">space</span></h2>')
@@ -361,10 +385,10 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
     grid.append('<h2 class="ui top attached segment inner">' + char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, '<span class="np">non-printable</span>') + '</h2>')
   }
 
-  grid.append('<div class="ui attached segment inner secondary">' + '0x' + charCode.toString(16).toUpperCase() + '</div>')
+  grid.append('<div class="ui attached segment inner secondary centered">' + '0x' + charCode.toString(16).toUpperCase() + '</div>')
   grid.append(div)
 
-  const buttonBar = $('<div class="ui bottom attached warning message inner"></div>')
+  const buttonBar = $('<div class="ui bottom attached warning message inner centered"></div>')
   buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
   buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
   buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
@@ -399,9 +423,9 @@ function setGlyphTable (table) {
   // Set the table
   table.empty()
   for (let i = 0; i < yadvance; i++) {
-    const row = $('<tr></tr>')
+    const row = $('<div></div>').addClass('row')
     for (let j = Math.min(0, xoffset); j <= Math.max(xadvance, right); j++) {
-      const cell = $('<td></td>').addClass('cell').attr('data-x', j).attr('data-y', i)
+      const cell = $('<div></div>').addClass('cell').attr('data-x', j).attr('data-y', i)
       // These classes are used to position the "limits" vertical lines
       if (i === 0 && j === 0) {
         cell.addClass('before_xoffset')
@@ -425,17 +449,18 @@ function setGlyphTable (table) {
   }
 
   // Draw the xadvance/xoffset limits
-  // (We need to get the actual cell position)
-  const left_xoffset = table.find('td.before_xoffset').offset().left - table.offset().left
-  const left_xadvance = table.find('td.before_xadvance').offset().left - table.offset().left
-  const xoffset_limit = table.parent().find('.xoffset_limit')
-  const xadvance_limit = table.parent().find('.xadvance_limit')
-  xoffset_limit.css('left', (left_xoffset + 10 - 1) + 'px') // -1 accounts for first border of table
-  xadvance_limit.css('left', (left_xadvance + 10 - 1) + 'px')
+  // (We need to get the actual cell position before hand)
+  const left_xoffset = table.find('div.before_xoffset')[0].offsetLeft
+  xoffset_limit = $('<div class="xoffset_limit limit"></div>').css('left', (left_xoffset - 1) + 'px') // -1 accounts for first border of table
+  table.append(xoffset_limit)
+
+  const left_xadvance = table.find('div.before_xadvance')[0].offsetLeft
+  xadvance_limit = $('<div class="xadvance_limit limit"></div>').css('left', (left_xadvance - 1) + 'px')
+  table.append(xadvance_limit)
 
   // Set the baseline
-  const baseline = table.parent().find('.baseline')
-  baseline.css('top', (10 + (maxBaseline + 1) * 10) + 'px')
+  baseline = $('<div class="baseline"></div>').css('top', ((maxBaseline + 1) * 10 - 1) + 'px')
+  table.append(baseline)
 }
 
 function updatePixels (table, newWidth, newHeight, x, y, fill) {
@@ -560,14 +585,6 @@ function extractFont () {
   let maxXAdv = 0
   for (ind in glyphsArray) {
     maxXAdv = Math.max(maxXAdv, glyphsArray[ind][3])
-  }
-
-  window['column_w'] = 'six'
-
-  if (maxXAdv <= 10) {
-    window['column_w'] = 'two'
-  } else if (maxXAdv <= 18) {
-    window['column_w'] = 'four'
   }
 
   // Space from the baseline to the top of the character cell is determined by the character with the
@@ -725,13 +742,13 @@ $(document).ready(function () {
     const target = $(e.target)
     target.toggleClass('fill')
     const fill = target.hasClass('fill') ? '1' : '0'
-    const table = target.parent().parent().parent().find('table.glyph')
+    const table = target.parent().parent().parent().find('.table.glyph')
     updatePixels(table, -1, -1, parseInt(target.attr('data-x')), parseInt(target.attr('data-y')), fill)
   })
 
   $(document).on('click', '.row-handler', function (e) {
     const targetID = $(e.target).attr('id')
-    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
     let height = parseInt(table.attr('data-h'))
 
     if (targetID === 'row-add') {
@@ -748,7 +765,7 @@ $(document).ready(function () {
 
   $(document).on('click', '.col-handler', function (e) {
     const targetID = $(e.target).attr('id')
-    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
     let width = parseInt(table.attr('data-w'))
 
     if (targetID === 'col-add') {
@@ -765,7 +782,7 @@ $(document).ready(function () {
 
   $(document).on('click', '.base-handler', function (e) {
     const targetID = $(e.target).attr('id')
-    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
     if (targetID === 'base-add') {
       table.attr('data-oh', parseInt(table.attr('data-oh')) + 1)
     } else if (targetID === 'base-remove') {
@@ -778,7 +795,7 @@ $(document).ready(function () {
 
   $(document).on('click', '.xadv-handler', function (e) {
     const targetID = $(e.target).attr('id')
-    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
     if (targetID === 'xadv-add') {
       table.attr('data-adv', parseInt(table.attr('data-adv')) + 1)
     } else if (targetID === 'xadv-remove') {
@@ -791,7 +808,7 @@ $(document).ready(function () {
 
   $(document).on('click', '.xoff-handler', function (e) {
     const targetID = $(e.target).attr('id')
-    const table = $(e.target).parent().parent().parent().find('table.glyph')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
     if (targetID === 'xoff-add') {
       table.attr('data-ow', parseInt(table.attr('data-ow')) + 1)
     } else if (targetID === 'xoff-remove') {
@@ -803,7 +820,7 @@ $(document).ready(function () {
   })
 
   $(document).on('change', '.dis-handler', function (e) {
-    const table = $(e.target).parent().parent().parent().parent().find('table.glyph')
+    const table = $(e.target).parent().parent().parent().parent().find('.table.glyph')
     table.attr('data-dis', 1 - parseInt(table.attr('data-dis')))
     table.fadeTo('fast', 1 - 0.9 * table.attr('data-dis'))
     return false
@@ -912,7 +929,6 @@ $(document).ready(function () {
         window['yAdvance'] = newfontHeight
         window['name'] = name + '_'
         window[name + '_Bitmaps'] = [] // This is otherwise created by the eval() in extract font
-        window['column_w'] = 'four' // Just took some value
         window['maxBaseline'] = newfontHeight
         window['last_part'] = 'const GFXfont ' + name + ' PROGMEM = {(uint8_t *) ' + name + '_Bitmaps, (GFXglyph *)' + name + '_Glyphs, 0x00, 0x00, ' + newfontHeight + '};'
         
@@ -1039,7 +1055,7 @@ $(document).ready(function () {
     const firstglyph = parseInt($('#firstglyph').val(), 16)
     const lastglyph = parseInt($('#lastglyph').val(), 16)
 
-    $('table.glyph').each(function () {
+    $('.table.glyph').each(function () {
       const t = $(this)
       // Ignore glyphs outside of requested range
       if (t.attr('data-char').charCodeAt(0) < firstglyph || t.attr('data-char').charCodeAt(0) > lastglyph) {
