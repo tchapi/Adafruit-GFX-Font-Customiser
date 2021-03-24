@@ -137,19 +137,15 @@
       font-style: italic;
     }
 
-    .ui.grid > .column:not(.row), .ui.grid > .row > .column {
-      padding-left: 0.25rem;
-      padding-right: 0.25rem;
+    .glyph-grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      justify-content: center;
     }
-
-    /* Fix Semantic UI bug */
-    @media screen and (min-width: 1920px) {
-      .ui.column.grid > [class*="two wide large screen"].column,
-      .ui.grid > .column.row > [class*="two wide large screen"].column,
-      .ui.grid > .row > [class*="two wide large screen"].column,
-      .ui.grid > [class*="two wide large screen"].column {
-        width: 12.5% !important;
-      }
+    .glyph-grid > div {
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
    </style>
 </head>
@@ -340,7 +336,7 @@
     <div class="advance-wrapper"><div class="advance"></div></div>
     <span>Loading and extracting font ...</span>
   </div>
-  <div id="glyphs" class="ui grid"><em>Please open or create a font first.</em></div>
+  <div id="glyphs" class="ui glyph-grid"><em>Please open or create a font first.</em></div>
 </body>
 <script>
 
@@ -373,7 +369,9 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
     .attr('data-dis', disabled ? 1 : 0)
     .css('opacity', disabled ? 0.1 : 1)
 
-  const grid = $('<div class="sixteen wide mobile eight wide tablet four wide computer two wide large screen column"></div>')
+  const min_glyph_width = (window['max_advance'] * 11 + 30 /* some margin */)
+
+  const grid = $(`<div style="width: ${min_glyph_width}px"></div>`)
   const div = $('<div class="ui attached segment inner"></div>')
 
   div.append(table)
@@ -586,6 +584,8 @@ function extractFont () {
   for (ind in glyphsArray) {
     maxXAdv = Math.max(maxXAdv, glyphsArray[ind][3])
   }
+
+  window['max_advance'] = maxXAdv
 
   // Space from the baseline to the top of the character cell is determined by the character with the
   // largest negative yOffset.
