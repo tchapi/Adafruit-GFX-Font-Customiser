@@ -1094,25 +1094,26 @@ $(document).ready(function () {
       
       if(t.attr('data-dis') == 0)
       {
+
         glyphs.push(
-          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+          '  { ' +
                   ('     ' + offset).slice(-5) + ', ' +
                   ('   ' + w).slice(-3) + ', ' +
                   ('   ' + h).slice(-3) + ', ' +
                   ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
                   ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
-                  "// '" + char + "'")
+                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isFirstCharacter ? ' ' : ',') + '   ' +
+                  "// 0x" + char.toString(16) + " '" + char + "'")
       } else {
         glyphs.push(
-          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+          '  { ' +
                   '    0, ' +
                   '  0, ' +
                   '  0, ' +
                   '  0, ' +
                   '   0, ' +
-                  '   0 }   ' +
-                  "// '" + char + "' disabled")
+                  '   0 }' + (isFirstCharacter ? ' ' : ',') + '   ' +
+                  "// 0x" + char.toString(16) + " '" + char + "' disabled")
       }
       
       offset = bitsArray.length
