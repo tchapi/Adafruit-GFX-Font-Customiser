@@ -1102,7 +1102,7 @@ $(document).ready(function () {
                   ('   ' + h).slice(-3) + ', ' +
                   ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
                   ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isFirstCharacter ? ' ' : ',') + '   ' +
+                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isLastCharacter ? ',' : ' ') + '   ' +
                   "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + " '" + char + "'")
       } else {
         glyphs.push(
@@ -1112,7 +1112,7 @@ $(document).ready(function () {
                   '  0, ' +
                   '  0, ' +
                   '   0, ' +
-                  '   0 }' + (isFirstCharacter ? ' ' : ',') + '   ' +
+                  '   0 }' + (isLastCharacter ? ',' : ' ') + '   ' +
                   "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + " '" + char + "' disabled")
       }
       
