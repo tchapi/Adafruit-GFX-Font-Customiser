@@ -1065,8 +1065,9 @@ $(document).ready(function () {
     let offset = 0
     const firstglyph = parseInt($('#firstglyph').val(), 16)
     const lastglyph = parseInt($('#lastglyph').val(), 16)
+    const cntglyph = $('.table.glyph').length;
 
-    $('.table.glyph').each(function () {
+    $('.table.glyph').each(function (index) {
       const t = $(this)
       // Ignore glyphs outside of requested range
       if (t.attr('data-char').charCodeAt(0) < firstglyph || t.attr('data-char').charCodeAt(0) > lastglyph) {
@@ -1093,7 +1094,8 @@ $(document).ready(function () {
         bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
       }
 
-      let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset >= window[name + 'Bitmaps'].length
+//      let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset >= window[name + 'Bitmaps'].length
+      let isLastCharacter = (index === (cntglyph - 1));
 
       // Set data width/height to 0 for disabled glyphs
       const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
@@ -1121,7 +1123,7 @@ $(document).ready(function () {
           '  0, ' +
           '  0, ' +
           '   0, ' +
-          '   0 }' + (isLastCharacter ? ',' : ' ') + '   ' +
+          '   0 }' + (isLastCharacter ? ' ' : ',') + '   ' +
           "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable') + ', disabled')
       }
       
