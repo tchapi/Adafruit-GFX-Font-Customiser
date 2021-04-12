@@ -478,7 +478,7 @@ function updatePixels (table, newWidth, newHeight, x, y, fill) {
     newHeight = height
   }
 
-  if(x >= 0 && y >= 0) {
+  if (x >= 0 && y >= 0) {
     x += xAdjust
     y += yAdjust
   }
@@ -671,7 +671,7 @@ $(document).ready(function () {
     $('#new-character').parent().toggle()
     $('#new-character-code').parent().toggle()
     
-    if($('input[name=charcode]').is(':checked')) {
+    if ($('input[name=charcode]').is(':checked')) {
       if ($('#new-character-code').val() == '') {
         $('.character').text('N/A')
       } else {
@@ -692,7 +692,7 @@ $(document).ready(function () {
     $('#newfont-new-character').parent().toggle()
     $('#newfont-new-character-code').parent().toggle()
     
-    if($('input[name=newfontCharcode]').is(':checked')) {
+    if ($('input[name=newfontCharcode]').is(':checked')) {
       if ($('#newfont-new-character-code').val() == '') {
         $('.newfontCharacter').text('N/A')
       } else {
@@ -706,8 +706,6 @@ $(document).ready(function () {
       }
     }
   })
-
-
 
   $('#loader').hide()
   window['name'] = null
@@ -952,7 +950,7 @@ $(document).ready(function () {
         
         setGlyphTable(grid.find('.glyph'))
       }
-      })
+    })
     .modal('show')
   })
 
@@ -1021,7 +1019,7 @@ $(document).ready(function () {
             $('#firstglyph').val(window['first'])
           }
           
-          if(newCharCode < firstglyph) {
+          if (newCharCode < firstglyph) {
             for (j = end; j >= start; j--) {
               const char = String.fromCharCode(parseInt(j))
               const grid = makeGlyphItem (' ', 1, 1, char, 4, 0, -window['maxBaseline'], !(j === newCharCode))
@@ -1091,9 +1089,7 @@ $(document).ready(function () {
       if (char === "\n") char = "\\n"
       if (char === "\r") char = "\\r"
       
-      if(t.attr('data-dis') == 0)
-      {
-
+      if (t.attr('data-dis') == 0) {
         glyphs.push(
           '  { ' +
                   ('     ' + offset).slice(-5) + ', ' +
