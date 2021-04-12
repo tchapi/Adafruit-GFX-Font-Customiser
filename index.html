@@ -1079,7 +1079,7 @@ $(document).ready(function () {
         bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
       }
 
-      let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset < window[name + 'Bitmaps'].length
+      let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset >= window[name + 'Bitmaps'].length
 
       // Set data width/height to 0 for disabled glyphs
       const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
@@ -1092,23 +1092,23 @@ $(document).ready(function () {
       if (t.attr('data-dis') == 0) {
         glyphs.push(
           '  { ' +
-                  ('     ' + offset).slice(-5) + ', ' +
-                  ('   ' + w).slice(-3) + ', ' +
-                  ('   ' + h).slice(-3) + ', ' +
-                  ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
-                  ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isLastCharacter ? ',' : ' ') + '   ' +
-                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable'))
+          ('     ' + offset).slice(-5) + ', ' +
+          ('   ' + w).slice(-3) + ', ' +
+          ('   ' + h).slice(-3) + ', ' +
+          ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
+          ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
+          ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isLastCharacter ? ' ' : ',') + '   ' +
+          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable'))
       } else {
         glyphs.push(
           '  { ' +
-                  '    0, ' +
-                  '  0, ' +
-                  '  0, ' +
-                  '  0, ' +
-                  '   0, ' +
-                  '   0 }' + (isLastCharacter ? ',' : ' ') + '   ' +
-                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable') + ', disabled')
+          '    0, ' +
+          '  0, ' +
+          '  0, ' +
+          '  0, ' +
+          '   0, ' +
+          '   0 }' + (isLastCharacter ? ',' : ' ') + '   ' +
+          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable') + ', disabled')
       }
       
       offset = bitsArray.length
