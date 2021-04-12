@@ -1102,7 +1102,7 @@ $(document).ready(function () {
                   ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
                   ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
                   ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isLastCharacter ? ',' : ' ') + '   ' +
-                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + " '" + char + "'")
+                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? ' "' + char + '"' : ' non printable'))
       } else {
         glyphs.push(
           '  { ' +
@@ -1112,7 +1112,7 @@ $(document).ready(function () {
                   '  0, ' +
                   '   0, ' +
                   '   0 }' + (isLastCharacter ? ',' : ' ') + '   ' +
-                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + " '" + char + "' disabled")
+                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? ' "' + char + '"' : ' non printable') + ', disabled')
       }
       
       offset = bitsArray.length
