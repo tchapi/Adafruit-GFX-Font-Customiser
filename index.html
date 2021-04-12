@@ -736,12 +736,26 @@ $(document).ready(function () {
     }).modal('show')
   })
 
-  $(document).on('click', '.cell', function (e) {
-    const target = $(e.target)
-    target.toggleClass('fill')
-    const fill = target.hasClass('fill') ? '1' : '0'
+  const fillPixel = (target, fill) => {
+    fill === '1' ? target.addClass('fill') : target.removeClass('fill')
     const table = target.parent().parent().parent().find('.table.glyph')
     updatePixels(table, -1, -1, parseInt(target.attr('data-x')), parseInt(target.attr('data-y')), fill)
+  }
+
+  let isFilling = false;
+  let fillingMode = '1';
+  $(document).on('mousedown', '.cell:not(.dead)', function (e) {
+    isFilling = true;
+    fillingMode = $(e.target).hasClass('fill') ? '0' : '1'
+    fillPixel($(e.target), fillingMode)
+  })
+  $(document).on('mouseup', '.cell:not(.dead)', function (e) {
+    isFilling = false;
+  })
+  $(document).on('mouseenter', '.cell:not(.dead)', function (e) {
+    if (isFilling) {
+      fillPixel($(e.target), fillingMode)
+    }
   })
 
   $(document).on('click', '.row-handler', function (e) {
