@@ -478,7 +478,7 @@ function updatePixels (table, newWidth, newHeight, x, y, fill) {
     newHeight = height
   }
 
-  if(x >= 0 && y >= 0) {
+  if (x >= 0 && y >= 0) {
     x += xAdjust
     y += yAdjust
   }
@@ -671,7 +671,7 @@ $(document).ready(function () {
     $('#new-character').parent().toggle()
     $('#new-character-code').parent().toggle()
     
-    if($('input[name=charcode]').is(':checked')) {
+    if ($('input[name=charcode]').is(':checked')) {
       if ($('#new-character-code').val() == '') {
         $('.character').text('N/A')
       } else {
@@ -692,7 +692,7 @@ $(document).ready(function () {
     $('#newfont-new-character').parent().toggle()
     $('#newfont-new-character-code').parent().toggle()
     
-    if($('input[name=newfontCharcode]').is(':checked')) {
+    if ($('input[name=newfontCharcode]').is(':checked')) {
       if ($('#newfont-new-character-code').val() == '') {
         $('.newfontCharacter').text('N/A')
       } else {
@@ -706,8 +706,6 @@ $(document).ready(function () {
       }
     }
   })
-
-
 
   $('#loader').hide()
   window['name'] = null
@@ -738,12 +736,26 @@ $(document).ready(function () {
     }).modal('show')
   })
 
-  $(document).on('click', '.cell', function (e) {
-    const target = $(e.target)
-    target.toggleClass('fill')
-    const fill = target.hasClass('fill') ? '1' : '0'
+  const fillPixel = (target, fill) => {
+    fill === '1' ? target.addClass('fill') : target.removeClass('fill')
     const table = target.parent().parent().parent().find('.table.glyph')
     updatePixels(table, -1, -1, parseInt(target.attr('data-x')), parseInt(target.attr('data-y')), fill)
+  }
+
+  let isFilling = false;
+  let fillingMode = '1';
+  $(document).on('mousedown', '.cell:not(.dead)', function (e) {
+    isFilling = true;
+    fillingMode = $(e.target).hasClass('fill') ? '0' : '1'
+    fillPixel($(e.target), fillingMode)
+  })
+  $(document).on('mouseup', '.cell:not(.dead)', function (e) {
+    isFilling = false;
+  })
+  $(document).on('mouseenter', '.cell:not(.dead)', function (e) {
+    if (isFilling) {
+      fillPixel($(e.target), fillingMode)
+    }
   })
 
   $(document).on('click', '.row-handler', function (e) {
@@ -952,7 +964,7 @@ $(document).ready(function () {
         
         setGlyphTable(grid.find('.glyph'))
       }
-      })
+    })
     .modal('show')
   })
 
@@ -1021,7 +1033,7 @@ $(document).ready(function () {
             $('#firstglyph').val(window['first'])
           }
           
-          if(newCharCode < firstglyph) {
+          if (newCharCode < firstglyph) {
             for (j = end; j >= start; j--) {
               const char = String.fromCharCode(parseInt(j))
               const grid = makeGlyphItem (' ', 1, 1, char, 4, 0, -window['maxBaseline'], !(j === newCharCode))
@@ -1081,7 +1093,7 @@ $(document).ready(function () {
         bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
       }
 
-      let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset < window[name + 'Bitmaps'].length
+      let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset >= window[name + 'Bitmaps'].length
 
       // Set data width/height to 0 for disabled glyphs
       const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
@@ -1091,28 +1103,26 @@ $(document).ready(function () {
       if (char === "\n") char = "\\n"
       if (char === "\r") char = "\\r"
       
-      if(t.attr('data-dis') == 0)
-      {
-
+      if (t.attr('data-dis') == 0) {
         glyphs.push(
           '  { ' +
-                  ('     ' + offset).slice(-5) + ', ' +
-                  ('   ' + w).slice(-3) + ', ' +
-                  ('   ' + h).slice(-3) + ', ' +
-                  ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
-                  ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isLastCharacter ? ',' : ' ') + '   ' +
-                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable'))
+          ('     ' + offset).slice(-5) + ', ' +
+          ('   ' + w).slice(-3) + ', ' +
+          ('   ' + h).slice(-3) + ', ' +
+          ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
+          ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
+          ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isLastCharacter ? ' ' : ',') + '   ' +
+          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable'))
       } else {
         glyphs.push(
           '  { ' +
-                  '    0, ' +
-                  '  0, ' +
-                  '  0, ' +
-                  '  0, ' +
-                  '   0, ' +
-                  '   0 }' + (isLastCharacter ? ',' : ' ') + '   ' +
-                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable') + ', disabled')
+          '    0, ' +
+          '  0, ' +
+          '  0, ' +
+          '  0, ' +
+          '   0, ' +
+          '   0 }' + (isLastCharacter ? ',' : ' ') + '   ' +
+          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable') + ', disabled')
       }
       
       offset = bitsArray.length
