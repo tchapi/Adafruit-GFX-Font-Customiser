@@ -1051,7 +1051,6 @@ $(document).ready(function () {
     const glyphs = []
     const bitsArray = []
     let offset = 0
-    let isFirstCharacter = true
     const firstglyph = parseInt($('#firstglyph').val(), 16)
     const lastglyph = parseInt($('#lastglyph').val(), 16)
 
@@ -1094,29 +1093,29 @@ $(document).ready(function () {
       
       if(t.attr('data-dis') == 0)
       {
+
         glyphs.push(
-          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+          '  { ' +
                   ('     ' + offset).slice(-5) + ', ' +
                   ('   ' + w).slice(-3) + ', ' +
                   ('   ' + h).slice(-3) + ', ' +
                   ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
                   ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }   ' +
-                  "// '" + char + "'")
+                  ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isLastCharacter ? ',' : ' ') + '   ' +
+                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable'))
       } else {
         glyphs.push(
-          ' ' + (isFirstCharacter ? ' ' : ',') + '{ ' +
+          '  { ' +
                   '    0, ' +
                   '  0, ' +
                   '  0, ' +
                   '  0, ' +
                   '   0, ' +
-                  '   0 }   ' +
-                  "// '" + char + "' disabled")
+                  '   0 }' + (isLastCharacter ? ',' : ' ') + '   ' +
+                  "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable') + ', disabled')
       }
       
       offset = bitsArray.length
-      isFirstCharacter = false
     })
 
     // Bitmaps
@@ -1151,8 +1150,8 @@ $(document).ready(function () {
 
     // Create a new last_part with the updated first & last glyph values in it
     let parts = window['last_part'].split(',')    
-    parts[2] = '0x' + firstglyph.toString(16)
-    parts[3] = '0x' + lastglyph.toString(16)
+    parts[2] = '0x' + firstglyph.toString(16).toUpperCase()
+    parts[3] = '0x' + lastglyph.toString(16).toUpperCase()
     const updated_last_part = parts.join(", ",parts)
 
     data = bitmapsOutput + glyphsOutput + updated_last_part
