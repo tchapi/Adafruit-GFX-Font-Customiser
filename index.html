@@ -1093,8 +1093,6 @@ $(document).ready(function () {
         bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
       }
 
-      let isLastCharacter = Math.ceil(parseInt(t.attr('data-w')) * parseInt(t.attr('data-h')) / 8) + offset >= window[name + 'Bitmaps'].length
-
       // Set data width/height to 0 for disabled glyphs
       const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
       const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
@@ -1111,7 +1109,7 @@ $(document).ready(function () {
           ('   ' + h).slice(-3) + ', ' +
           ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
           ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-          ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' }' + (isLastCharacter ? ' ' : ',') + '   ' +
+          ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' },   ' +
           "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable'))
       } else {
         glyphs.push(
@@ -1121,7 +1119,7 @@ $(document).ready(function () {
           '  0, ' +
           '  0, ' +
           '   0, ' +
-          '   0 }' + (isLastCharacter ? ' ' : ',') + '   ' +
+          '   0 },   ' +
           "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable') + ', disabled')
       }
       
@@ -1155,6 +1153,8 @@ $(document).ready(function () {
     bitmapsOutput += '};\n\n'
 
     // Glyphs
+    // The last glyph has a ',' too much at the end, we need to remove it (it's easier than to avoid putting it in the first place)
+    glyphs[glyphs.length - 1] = glyphs[glyphs.length - 1].replace('},', '} ')
     let glyphsOutput = 'const GFXglyph ' + name + 'Glyphs[] PROGMEM = {\n'
     glyphsOutput += glyphs.join('\n') + '\n};\n\n'
 
