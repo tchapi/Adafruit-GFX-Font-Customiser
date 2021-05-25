@@ -1098,8 +1098,6 @@ $(document).ready(function () {
       const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
 
       let char = t.attr('data-char')
-      if (char === "\n") char = "\\n"
-      if (char === "\r") char = "\\r"
       
       if (t.attr('data-dis') == 0) {
         glyphs.push(
@@ -1110,7 +1108,7 @@ $(document).ready(function () {
           ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
           ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
           ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' },   ' +
-          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable'))
+          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + ' ' + char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, 'non-printable'))
       } else {
         glyphs.push(
           '  { ' +
@@ -1120,7 +1118,7 @@ $(document).ready(function () {
           '  0, ' +
           '   0, ' +
           '   0 },   ' +
-          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + (char >= ' ' ? " '" + char + "'" : ' non printable') + ', disabled')
+          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + ' ' + char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, 'non-printable'))
       }
       
       offset = bitsArray.length
