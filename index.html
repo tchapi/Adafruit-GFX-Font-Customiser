@@ -1098,6 +1098,9 @@ $(document).ready(function () {
       const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
 
       let char = t.attr('data-char')
+      const charCode = char.charCodeAt(0).toString(16).toUpperCase()
+      const charDisplay = char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, 'non-printable')
+      const comment = '// 0x' + charCode + ' \'' + charDisplay + '\''
       
       if (t.attr('data-dis') == 0) {
         glyphs.push(
@@ -1108,7 +1111,7 @@ $(document).ready(function () {
           ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
           ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
           ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' },   ' +
-          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + ' ' + char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, 'non-printable'))
+          comment)
       } else {
         glyphs.push(
           '  { ' +
@@ -1118,7 +1121,7 @@ $(document).ready(function () {
           '  0, ' +
           '   0, ' +
           '   0 },   ' +
-          "// 0x" + char.charCodeAt(0).toString(16).toUpperCase() + ' ' + char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, 'non-printable'))
+          comment)
       }
       
       offset = bitsArray.length
