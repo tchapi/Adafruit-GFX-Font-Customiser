@@ -593,8 +593,9 @@ function extractFont () {
 
   // Display tables
   for (ind in glyphsArray) {
+    const charIndex = parseInt(ind)
     // for each glyph
-    const char = String.fromCharCode(parseInt(window['first'], 16) + parseInt(ind))
+    const char = String.fromCharCode(parseInt(window['first'], 16) + charIndex)
     const w = glyphsArray[ind][1]
     const h = glyphsArray[ind][2]
     const adv = glyphsArray[ind][3]
@@ -604,18 +605,32 @@ function extractFont () {
 
     maxBaseline = Math.max(maxBaseline, -oh)
 
-    // extract numbers
-    currentOffset = glyphsArray[parseInt(ind)][0]
-    if (parseInt(ind) + 1 < glyphsArray.length) {
-      nextOffset = glyphsArray[parseInt(ind) + 1][0]
+    // extract data: current offset
+    currentOffset = glyphsArray[charIndex][0]
+
+    // extract data: next offset
+    if (charIndex + 1 < glyphsArray.length) {
+      // To get the next offset, we need to find the next non-disabled
+      // character offset (else, we will get 0 and it's not correct).
+      let nextIndexIncrementor = 1
+      do {
+        nextOffset = glyphsArray[charIndex + nextIndexIncrementor][0]
+        nextIndexIncrementor += 1
+      } while (nextOffset === 0 && (charIndex + nextIndexIncrementor < glyphsArray.length))
+      if (nextOffset === 0) { // We reached the end of the bitmaps
+        nextOffset = window[name + 'Bitmaps'].length
+      }
     } else {
       nextOffset = window[name + 'Bitmaps'].length
     }
-    for (let k = 0; k < (nextOffset - currentOffset); k++) {
-      n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
-    }
     
     let disabled = (w == 0 || h == 0) && adv == 0
+
+    if (!disabled) {
+      for (let k = 0; k < (nextOffset - currentOffset); k++) {
+        n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
+      }
+    }
 
     grid = makeGlyphItem (n, w, h, char, adv, ow, oh, disabled)
 
@@ -630,7 +645,7 @@ function extractFont () {
       }, 1)
     }
 
-    glyphAppendClosure(grid, (parseInt(ind) + 1) / glyphsArray.length, maxBaseline)
+    glyphAppendClosure(grid, (charIndex + 1) / glyphsArray.length, maxBaseline)
   }
   
   $('#export').prop( "disabled", false )
