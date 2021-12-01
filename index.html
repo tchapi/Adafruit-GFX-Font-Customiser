@@ -576,27 +576,26 @@ function extractFont () {
 
   const glyphsArray = window[name + 'Glyphs']
 
-  // Calculate the max yAdv to scale the table columns for the glyphs
+  // Run pre-calculations for correct display
   let maxW = 0
-  for (ind in glyphsArray) {
-    maxW = Math.max(maxW, glyphsArray[ind][1], glyphsArray[ind][3])
-  }
-  // Calculate the ideal glyph width. 160px is the minimum (for the buttons)
-  window['glyph_table_width'] = Math.max(160, maxW * 11 + 30 /* some margin */)
-
-  // Compute the max height that we need for every glyph cell
-  let maxAboveBaseline = 0
+  let maxBaseline = 0
   let minUnderBaseline = 0
   for (ind in glyphsArray) {
-    const inv_oh = -glyphsArray[ind][5] + 1
-    maxAboveBaseline = Math.max(maxAboveBaseline, inv_oh)
-    minUnderBaseline = Math.min(minUnderBaseline, inv_oh - glyphsArray[ind][2])
+    const inv_oh = -glyphsArray[ind][5]
+    maxW = Math.max(maxW, glyphsArray[ind][1], glyphsArray[ind][3])
+    maxBaseline = Math.max(maxBaseline, inv_oh)
+    minUnderBaseline = Math.min(minUnderBaseline, inv_oh + 1 - glyphsArray[ind][2])
   }
-  window['maxH'] = maxAboveBaseline - minUnderBaseline
+
+  // Calculate the max height that we need for every glyph cell
+  window['maxH'] = maxBaseline + 1 - minUnderBaseline
 
   // Space from the baseline to the top of the character cell is determined by the character with the
   // largest negative yOffset.
-  let maxBaseline = 0
+  window['maxBaseline'] = maxBaseline
+
+  // Calculate the ideal glyph width. 160px is the minimum (for the buttons)
+  window['glyph_table_width'] = Math.max(160, maxW * 11 + 30 /* some margin */)
 
   // Display tables
   for (ind in glyphsArray) {
@@ -609,8 +608,6 @@ function extractFont () {
     const ow = glyphsArray[ind][4]
     const oh = glyphsArray[ind][5]
     let n = ''
-
-    maxBaseline = Math.max(maxBaseline, -oh)
 
     // extract data: current offset
     currentOffset = glyphsArray[charIndex][0]
@@ -641,18 +638,18 @@ function extractFont () {
 
     grid = makeGlyphItem (n, w, h, char, adv, ow, oh, disabled)
 
-    function glyphAppendClosure(el, adv, maxBaseline) {
+    function glyphAppendClosure(el, adv) {
       setTimeout(function () {
         advanceLoading(0.2 * adv)
         $('#glyphs').append(el)
         if (adv === 1) {
           // Run the setGlyphTable function now
-          displayGlyphTable(maxBaseline)
+          displayGlyphTable()
         }
       }, 1)
     }
 
-    glyphAppendClosure(grid, (charIndex + 1) / glyphsArray.length, maxBaseline)
+    glyphAppendClosure(grid, (charIndex + 1) / glyphsArray.length)
   }
   
   $('#export').prop( "disabled", false )
@@ -661,9 +658,8 @@ function extractFont () {
   $('#extract').prop( "disabled", true )
 }
 
-function displayGlyphTable (maxBaseline) {
-  window['maxBaseline'] = maxBaseline
 
+function displayGlyphTable () {
   const l = $('#glyphs').children().length
   $('#glyphs').children().each(function (i) {
 
