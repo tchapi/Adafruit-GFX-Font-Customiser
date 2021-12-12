@@ -547,9 +547,27 @@ function extractFont () {
 
   // Get first, last and yOffset
   let parts = last_part[0].split(',')
-  const number_re = /0[xX][0-9a-fA-F]+|[0-9]+/gi
-  window['first'] = parts[2].match(number_re)[0]
-  window['last'] = parts[3].match(number_re)[0]
+  const number_hexa_re = /0[xX][0-9a-fA-F]+/gi
+  const number_dec_re = /[0-9]+/gi
+  if (parts[2].match(number_hexa_re)) {
+    window['first'] = parts[2].match(number_hexa_re)[0]
+  } else if (parts[2].match(number_dec_re)) {
+    window['first'] = '0x' + Number(parts[2].match(number_dec_re)[0]).toString(16)
+  } else {
+    alert('No correct font file found (first character offset unparsable), please paste the content of an Adafruit GFX font file first.')
+    $("#loader").hide()
+    return
+  }
+
+  if (parts[3].match(number_hexa_re)) {
+    window['last'] = parts[3].match(number_hexa_re)[0]
+  } else if (parts[3].match(number_dec_re)) {
+    window['last'] = '0x' + Number(parts[3].match(number_dec_re)[0]).toString(16)
+  } else {
+    alert('No correct font file found (last character offset unparsable), please paste the content of an Adafruit GFX font file first.')
+    $("#loader").hide()
+    return
+  }
 
   data = data.replace(last_part[0], '')
   data = data.replace(/\{/gi, '[').replace(/\}/gi, ']')
