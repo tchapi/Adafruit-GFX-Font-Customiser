@@ -533,7 +533,7 @@ function extractFont () {
   if (found != null && found.length > 1) {
     window['name'] = found[1]
   } else {
-    alert('No correct font file found, please paste the content of an Adafruit GFX font file first.')
+    alert('No correct font file found (name missing), please paste the content of an Adafruit GFX font file first.')
     $("#loader").hide()
     return
   }
