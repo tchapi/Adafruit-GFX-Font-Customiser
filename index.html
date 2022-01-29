@@ -1,24 +1,160 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <script src="https://code.jquery.com/jquery-3.2.1.min.js"
-    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
   <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    html, body {
+      margin: 0 10px;
+    }
+    textarea {
+      font-family: "Courier", monotype;
+      font-size: 0.9em !important;
+    }
+
+    .explanation ul {
+      list-style-type: circle;
+      margin: 0;
+      padding-left: 14px;
+    }
+
+    .explanation h5 {
+      margin-bottom: 4px;
+      margin-top: 4px;
+    }
+
+    #glyphs div.inner {
+      padding: 10px 0;
+      position: relative;
+    }
+    #glyphs .centered.inner {
+      padding: 10px;
+      text-align: center;
+    }
+
+    #glyphs h2.inner {
+      font-size: 2em;
+      padding: 0.3em;
+      text-align: center;
+    }
+    #glyphs div.table {
+      user-select: none;
+      position: relative;
+      width: max-content;
+      margin: auto;
+    }
+    #glyphs div.table div.row {
+      height: 10px;
+      position: relative;
+    }
+    #glyphs div.table div.row:first-child div.cell {
+      height: 10px;
+      border-top: 1px solid lightgrey;
+    }
+    #glyphs div.table div.cell {
+      border-bottom: 1px solid lightgrey;
+      border-right: 1px solid lightgrey;
+      width: 10px;
+      height: 10px;
+      display: inline-block;
+      cursor: pointer;
+    }
+    #glyphs div.table div.cell:first-child {
+      border-left: 1px solid lightgrey;
+    }
+    #glyphs div.table div.cell.fill {
+      background: black;
+    }
+    #glyphs div.table div.cell:hover {
+      background: #999;
+    }
+    #glyphs div.table div.cell.fill.over {
+      box-shadow: 0 0 9px #D00 inset;
+    }
+    #glyphs div.table div.cell.dead {
+      background: #DDD;
+    }
+    #loader {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, 0.5);
+      color: white;
+      font-weight: bold;
+      font-size: 2em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+    }
+    .advance-wrapper {
+      width: 300px;
+      position: relative;
+      border: 1px solid lightgray;
+      height: 30px;
+      margin-bottom: 20px;
+    }
+    .advance {
+      opacity: 0.7;
+      background: white;
+      width: 10px;
+      height: 24px;
+      margin: 2px;
+    }
+    .baseline {
+      position:absolute;
+      left:0px;
+      width:100%;
+      height:1px;
+      background-color:#090;
+      opacity:0.6;
+      pointer-events: none;
+    }
+    .limit {
+      position: absolute;
+      top: 0px;
+      width: 2px;
+      height: 100%;
+      opacity: 0.4;
+      pointer-events: none;
+      background-color: #900;
+    }
+    #add {
+      margin-top: 10px;
+    }
+
+    span.np {
+      font-size: 0.5em;
+      color: #CCC;
+      font-style: italic;
+    }
+
+    .glyph-grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: stretch;
+      justify-content: center;
+    }
+    .glyph-grid > div {
+      margin: 1rem;
+      box-shadow: 3px 3px 8px rgba(0,0,0,0.15);
+    }
+   </style>
 </head>
 <body>
-  <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser"><img
-      style="position: absolute; top: 0; right: 0; border: 0;"
-      src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
-      alt="Fork me on GitHub"
-      data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+  <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
 
   <h1 class="ui header">Adafruit GFX Pixel font customiser</h1>
   <p>
-    <em>Created by <a href="https://github.com/tchapi">tchapi</a>, major improvements by <a
-        href="https://github.com/cmarrin">cmarrin</a> and <a href="https://github.com/charno">charno</a> - Source code
-      available on <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em>
+    <em>Created by <a href="https://github.com/tchapi">tchapi</a>, major improvements by <a href="https://github.com/cmarrin">cmarrin</a> and <a href="https://github.com/charno">charno</a> - Source code available on <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em>
   </p>
 
   <div class="ui divider"></div>
@@ -31,27 +167,24 @@
             <label>Extract font from source</label>
             <textarea id="source"></textarea>
           </div>
-          <button class="ui button teal" id="extract"><i class="icon upload"></i> Extract</button>
-          <button class="ui button red right floated" id="reset" disabled><i class="icon undo"></i> Reset</button>
-          <button class="ui button blue right floated" id="createFont"><i class="icon file outline"></i> Create a new
-            font</button>
+            <button class="ui button teal" id="extract"><i class="icon upload"></i> Extract</button>
+            <button class="ui button red right floated" id="reset" disabled><i class="icon undo"></i> Reset</button>
+            <button class="ui button blue right floated" id="createFont"><i class="icon file outline"></i> Create a new font</button>
         </div>
       </div>
     </div>
-
+  
     <div class="ui small modal choose">
       <div class="header">Add a new character</div>
       <div class="content">
-        <p>The character will be added to the set (<em>either at the end or at the beginning, depending on its
-            code</em>), and if it is not contiguous with the previous set, <strong>the interval characters will be added
-            too</strong>, but disabled, so that they do not take much space in the exported glyphs</p>
+        <p>The character will be added to the set (<em>either at the end or at the beginning, depending on its code</em>), and if it is not contiguous with the previous set, <strong>the interval characters will be added too</strong>, but disabled, so that they do not take much space in the exported glyphs</p>
         <form class="ui form">
-          <div class="field">
-            <div class="ui toggle checkbox use-charcode">
-              <input type="checkbox" name="charcode" tabindex="0" class="hidden">
-              <label>Use char code (hex)</label>
-            </div>
+        <div class="field">
+          <div class="ui toggle checkbox use-charcode">
+            <input type="checkbox" name="charcode" tabindex="0" class="hidden">
+            <label>Use char code (hex)</label>
           </div>
+        </div>
         </form>
         <div class="ui right labeled input">
           <input type="text" id="new-character" placeholder="Character to add" maxlength="1">
@@ -71,30 +204,30 @@
         <div class="ui approve green button">Add</div>
       </div>
     </div>
-
-
+    
+    
     <div class="ui small modal newfont">
       <div class="header">Create a new font</div>
       <div class="content">
         <p>To create a new font, you need to provide some details.</p>
         <form class="ui form">
-          <div class="field">
-            <label>Font name</label>
-            <input type="text" id="newfont-name" placeholder="Name of the new font">
+        <div class="field">
+          <label>Font name</label>
+          <input type="text" id="newfont-name" placeholder="Name of the new font">
+        </div>
+        <div class="field">
+          <label>Font height</label>
+          <p>Font height in pixels</p>
+          <input id="newfont-height"  type="number" value="1" min="1" placeholder="Height of the new font">
+        </div>
+        <div class="field">
+          <label>First character</label>
+          <p>The new font will be created with one character. You can add more characters later.</p>
+          <div class="ui toggle checkbox newfont-use-charcode">
+            <input type="checkbox" name="newfontCharcode" tabindex="0" class="hidden">
+            <label>Use char code (hex)</label>
           </div>
-          <div class="field">
-            <label>Font height</label>
-            <p>Font height in pixels</p>
-            <input id="newfont-height" type="number" value="1" min="1" placeholder="Height of the new font">
-          </div>
-          <div class="field">
-            <label>First character</label>
-            <p>The new font will be created with one character. You can add more characters later.</p>
-            <div class="ui toggle checkbox newfont-use-charcode">
-              <input type="checkbox" name="newfontCharcode" tabindex="0" class="hidden">
-              <label>Use char code (hex)</label>
-            </div>
-          </div>
+        </div>
 
         </form>
         <div class="ui right labeled input">
@@ -125,7 +258,7 @@
         <div class="ui approve blue button">Ok</div>
       </div>
     </div>
-
+    
     <div class="ui small modal confirmation">
       <div class="header">⚠️ Warning</div>
       <div class="content">
@@ -154,8 +287,7 @@
               <input type="text" id="lastglyph" value="0x00" />
             </div>
           </div>
-          <button class="ui button green" id="export" disabled="disabled"><i class="icon download"></i> Process and
-            create file</button>
+          <button class="ui button green" id="export" disabled="disabled"><i class="icon download"></i> Process and create file</button>
         </div>
       </div>
     </div>
@@ -170,13 +302,11 @@
         <h5>Importing or creating a font:</h5>
         You can either:
         <ul>
-          <li>Extract a font by copying &amp; pasting the existing font source (a <kbd>.h</kbd> file) in the textarea
-            above</li>
+          <li>Extract a font by copying &amp; pasting the existing font source (a <kbd>.h</kbd> file) in the textarea above</li>
           <li>Create a new font with a single character</li>
         </ul>
         <h5>Adding characters:</h5>
-        <p>You can easily add new characters to the font afterwards. Interval characters will be added automatically
-          <em>as disabled glyphs</em>.</p>
+        <p>You can easily add new characters to the font afterwards. Interval characters will be added automatically <em>as disabled glyphs</em>.</p>
       </div>
     </div>
     <div class="eleven wide column">
@@ -186,36 +316,926 @@
         <ul>
           <li>Enable or disable the glyph</li>
           <li>Edit each pixel of the glyph</li>
-          <li>Edit all values present in the GFXglyph data structure (See <a
-              href="https://learn.adafruit.com/creating-custom-symbol-font-for-adafruit-gfx-library/understanding-the-font-specification">Adafruit
-              documentation</a> for more information)</li>
+          <li>Edit all values present in the GFXglyph data structure (See <a href="https://learn.adafruit.com/creating-custom-symbol-font-for-adafruit-gfx-library/understanding-the-font-specification">Adafruit documentation</a> for more information)</li>
         </ul>
         <h5>When exporting, you can either :</h5>
         <ul>
-          <li>Select a range of characters to include in the output. Characters outside of this range will
-            <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
-          <li>Disable individual characters. The disabled characters get all values set to <kbd>0</kbd>. There still are
-            entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the
-            characters in their correct places in the ASCII table.</li>
+          <li>Select a range of characters to include in the output. Characters outside of this range will <strong>not</strong> be included in the bitmap nor in the glyphs table.</li>
+          <li>Disable individual characters. The disabled characters get all values set to <kbd>0</kbd>. There still are entries for the disabled characters in the glyphs table, but no data in the bitmap for them — this keeps the characters in their correct places in the ASCII table.</li>
         </ul>
       </div>
     </div>
   </div>
-
+  
   <div class="ui divider"></div>
 
   <h2 class="ui header">Glyphs <em class="fontname" style="display: none;">FontName unknown</em></h2>
-  <p><button class="ui small button violet" id="add" disabled="disabled"><i class="icon add"></i> Add a new
-      character</button></p>
+  <p><button class="ui small button violet" id="add" disabled="disabled"><i class="icon add"></i> Add a new character</button></p>
 
   <div id="loader">
-    <div class="advance-wrapper">
-      <div class="advance"></div>
-    </div>
+    <div class="advance-wrapper"><div class="advance"></div></div>
     <span>Loading and extracting font ...</span>
   </div>
   <div id="glyphs" class="ui glyph-grid"><em>Please open or create a font first.</em></div>
 </body>
+<script>
 
+function makeUpDownButton (name, func, color, width) {
+  const button = $('<div class="ui mini compact buttons" style="margin:1px"></div>')
+  const style = 'ui compact button ' + func + '-handler ' + color
+  button.append('<button id="' + func + '-remove" class="' + style + '">-</button>')
+  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + '">' + name + '</button>')
+  button.append('<button id="' + func + '-add" class="' + style + '">+</button>')
+  return button
+}
+
+function makeCheckButton (name, func, color, width, disabled) {
+  const button = $('<span class="ui mini compact" style="margin:1px"></span>')
+  button.append('<label class="ui '+color+' label" disabled style="width:' + width + '""><input type="checkbox" class="'+func+'-handler" id="'+func+'"' + (disabled ? ' checked="checked"' : '') + '> '+name+'</label>')
+  return button
+}
+
+function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
+  const charCode = char.charCodeAt(0)
+  const table = $('<div class="table"></div>')
+    .addClass('glyph')
+    .attr('data-pixels', n)
+    .attr('data-w', w)
+    .attr('data-h', h)
+    .attr('data-char', char)
+    .attr('data-adv', adv)
+    .attr('data-ow', ow)
+    .attr('data-oh', oh)
+    .attr('data-dis', disabled ? 1 : 0)
+    .css('opacity', disabled ? 0.1 : 1)
+
+  const grid = $(`<div style="width: ${window['glyph_table_width']}px"></div>`)
+  const div = $('<div class="ui attached segment inner"></div>')
+
+  div.append(table)
+
+  if (char == ' ') {
+    grid.append('<h2 class="ui top attached segment inner"><span class="np">space</span></h2>')
+  } else  {
+    // Display a specific text for non-printable characters
+    grid.append('<h2 class="ui top attached segment inner">' + char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, '<span class="np">non-printable</span>') + '</h2>')
+  }
+
+  grid.append('<div class="ui attached segment inner secondary centered">' + '0x' + charCode.toString(16).toUpperCase() + '</div>')
+  grid.append(div)
+
+  const buttonBar = $('<div class="ui bottom attached warning message inner centered"></div>')
+  buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
+  buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
+  buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
+  buttonBar.append(makeUpDownButton('XOff', 'xoff', 'blue', 50))
+  buttonBar.append(makeUpDownButton('XAdv', 'xadv', 'teal', 50))
+  buttonBar.append(makeClipButtons('clip', 'gray', 10))
+  buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 110, disabled))
+
+  grid.append(buttonBar)
+
+  return grid
+}
+
+function makeClipButtons(func, color, width) {
+    const button = $('<div class="ui mini compact buttons" style="margin:1px"></div>')
+    const style = 'ui compact button ' + func + '-handler ' + color
+    button.append('<button id="' + func + '-copy" class="' + style + '">COPY</button>')
+    button.append('<button id="' + func + '-paste" class="' + style + '">PASTE</button>')
+    return button
+}
+
+function setGlyphTable (table) {
+  const xadvance = parseInt(table.attr('data-adv'))
+  const maxH = parseInt(window['maxH'])
+
+  const xoffset = parseInt(table.attr('data-ow'))
+  const yoffset = parseInt(table.attr('data-oh'))
+
+  const width = parseInt(table.attr('data-w'))
+  const height = parseInt(table.attr('data-h'))
+
+  const pixels = table.attr('data-pixels')
+
+  const maxBaseline = window['maxBaseline']
+
+  const left = xoffset
+  const right = width + xoffset
+  const top = maxBaseline + yoffset
+  const bottom = top + height
+
+  // Set the table
+  table.empty()
+  for (let i = 0; i < maxH; i++) {
+    const row = $('<div></div>').addClass('row')
+    for (let j = Math.min(0, xoffset); j <= Math.max(xadvance, right); j++) {
+      const cell = $('<div></div>').addClass('cell').attr('data-x', j).attr('data-y', i)
+      // These classes are used to position the "limits" vertical lines
+      if (i === 0 && j === 0) {
+        cell.addClass('before_xoffset')
+      }
+      if (i === 0 && j === xadvance) {
+        cell.addClass('before_xadvance')
+      }
+      // Now draw the actual pixels
+      if (i < top || i >= bottom || j < left || j >= right) {
+        cell.addClass('dead')
+      } else if (pixels.charAt((i - top) * width + (j - left)) == '1') {
+        cell.addClass('fill')
+      }
+      // If the pixel is after xadvance, or before xoffset
+      if (j >= xadvance || j < Math.max(0, xoffset)) {
+        cell.addClass('over')
+      }
+      row.append(cell)
+    }
+    table.append(row)
+  }
+
+  // Draw the xadvance/xoffset limits
+  // (We need to get the actual cell position before hand)
+  const left_xoffset = table.find('div.before_xoffset')[0].offsetLeft
+  xoffset_limit = $('<div class="xoffset_limit limit"></div>').css('left', (left_xoffset - 1) + 'px') // -1 accounts for first border of table
+  table.append(xoffset_limit)
+
+  const left_xadvance = table.find('div.before_xadvance')[0].offsetLeft
+  xadvance_limit = $('<div class="xadvance_limit limit"></div>').css('left', (left_xadvance - 1) + 'px')
+  table.append(xadvance_limit)
+
+  // Set the baseline
+  baseline = $('<div class="baseline"></div>').css('top', ((maxBaseline + 1) * 10 - 1) + 'px')
+  table.append(baseline)
+}
+
+function updatePixels (table, newWidth, newHeight, x, y, fill) {
+  const dataPixels = table.attr('data-pixels')
+  const width = parseInt(table.attr('data-w'))
+  const height = parseInt(table.attr('data-h'))
+  const xoff = parseInt(table.attr('data-ow'))
+  const base = parseInt(table.attr('data-oh'))
+  const xAdjust = xoff * -1
+  const yAdjust = (window['maxBaseline'] + base) * -1
+
+  if (newWidth < 0) {
+    newWidth = width
+  }
+
+  if (newHeight < 0) {
+    newHeight = height
+  }
+
+  if (x >= 0 && y >= 0) {
+    x += xAdjust
+    y += yAdjust
+  }
+
+  // Store the pixels into a 2D bool array
+  const array = []
+  let pixelIndex = 0
+  for (let i = 0; i < height; ++i) {
+    const rowArray = []
+    for (let j = 0; j < width; ++j) {
+      if(x == j && y == i) {
+        rowArray.push(fill)
+      } else {
+        rowArray.push(dataPixels.charAt(pixelIndex))
+      }
+      ++pixelIndex
+    }
+    array.push(rowArray)
+  }
+
+  // Write out to a string newWidth x newHeight
+  let newPixels = ''
+  for (let i = 0; i < newHeight; ++i) {
+    for (let j = 0; j < newWidth; ++j) {
+      if (i >= height || j >= width) {
+        newPixels += '0'
+      } else {
+        newPixels += array[i][j]
+      }
+    }
+  }
+
+  // Pad out to a multiple of 8
+  const pad = newPixels.length % 8
+  for (let i = 0; i < pad; ++i) {
+    newPixels += '0'
+  }
+
+  table.attr('data-pixels', newPixels)
+}
+
+function advanceLoading (percent) {
+  const element = document.querySelector('#loader .advance')
+  element.style.width = Math.floor(294 * percent)
+}
+
+function extractFont () {
+  let data = $('#source').val()
+
+  // Extract name
+  const re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
+  const found = data.match(re)
+
+  if (found != null && found.length > 1) {
+    window['name'] = found[1]
+  } else {
+    alert('No correct font file found (name missing), please paste the content of an Adafruit GFX font file first.')
+    $("#loader").hide()
+    return
+  }
+
+  $('#glyphs').empty()
+
+  // extract GFXFont part
+  const last_part_re = /const\ GFXfont([\s\S]*)/g
+  const last_part = data.match(last_part_re)
+  window['last_part'] = last_part[0]
+
+  // Get first, last and yOffset
+  let parts = last_part[0].split(',')
+  const number_hexa_re = /0[xX][0-9a-fA-F]+/gi
+  const number_dec_re = /[0-9]+/gi
+  if (parts[2].match(number_hexa_re)) {
+    window['first'] = parts[2].match(number_hexa_re)[0]
+  } else if (parts[2].match(number_dec_re)) {
+    window['first'] = '0x' + Number(parts[2].match(number_dec_re)[0]).toString(16)
+  } else {
+    alert('No correct font file found (first character offset unparsable), please paste the content of an Adafruit GFX font file first.')
+    $("#loader").hide()
+    return
+  }
+
+  if (parts[3].match(number_hexa_re)) {
+    window['last'] = parts[3].match(number_hexa_re)[0]
+  } else if (parts[3].match(number_dec_re)) {
+    window['last'] = '0x' + Number(parts[3].match(number_dec_re)[0]).toString(16)
+  } else {
+    alert('No correct font file found (last character offset unparsable), please paste the content of an Adafruit GFX font file first.')
+    $("#loader").hide()
+    return
+  }
+
+  data = data.replace(last_part[0], '')
+  data = data.replace(/\{/gi, '[').replace(/\}/gi, ']')
+  data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
+
+  eval(data)
+
+  /*
+      // Tada 🎉
+      console.log(window["name"])
+      console.log(window["size"])
+      console.log(window["first"])
+      console.log(window["last"])
+      console.log(window["last_part"])
+      console.log(window[name + "Bitmaps"])
+      console.log(window[name + "Glyphs"])
+      */
+
+  $('.fontname').text('(' + window['name'].slice(0, window['name'].length - 1) + ')').show()
+  $('#firstglyph').val(window["first"])
+  $('#lastglyph').val(window["last"])
+
+  $('#add').attr('disabled', false)
+
+  const glyphsArray = window[name + 'Glyphs']
+
+  // Run pre-calculations for correct display
+  let maxW = 0
+  let maxBaseline = 0
+  let minUnderBaseline = 0
+  for (ind in glyphsArray) {
+    const inv_oh = -glyphsArray[ind][5]
+    maxW = Math.max(maxW, glyphsArray[ind][1], glyphsArray[ind][3])
+    maxBaseline = Math.max(maxBaseline, inv_oh)
+    minUnderBaseline = Math.min(minUnderBaseline, inv_oh + 1 - glyphsArray[ind][2])
+  }
+
+  // Calculate the max height that we need for every glyph cell
+  window['maxH'] = maxBaseline + 1 - minUnderBaseline
+
+  // Space from the baseline to the top of the character cell is determined by the character with the
+  // largest negative yOffset.
+  window['maxBaseline'] = maxBaseline
+
+  // Calculate the ideal glyph width. 160px is the minimum (for the buttons)
+  window['glyph_table_width'] = Math.max(160, maxW * 11 + 30 /* some margin */)
+
+  // Display tables
+  for (ind in glyphsArray) {
+    const charIndex = parseInt(ind)
+    // for each glyph
+    const char = String.fromCharCode(parseInt(window['first'], 16) + charIndex)
+    const w = glyphsArray[ind][1]
+    const h = glyphsArray[ind][2]
+    const adv = glyphsArray[ind][3]
+    const ow = glyphsArray[ind][4]
+    const oh = glyphsArray[ind][5]
+    let n = ''
+
+    // extract data: current offset
+    currentOffset = glyphsArray[charIndex][0]
+
+    // extract data: next offset
+    if (charIndex + 1 < glyphsArray.length) {
+      // To get the next offset, we need to find the next non-disabled
+      // character offset (else, we will get 0 and it's not correct).
+      let nextIndexIncrementor = 1
+      do {
+        nextOffset = glyphsArray[charIndex + nextIndexIncrementor][0]
+        nextIndexIncrementor += 1
+      } while (nextOffset === 0 && (charIndex + nextIndexIncrementor < glyphsArray.length))
+      if (nextOffset === 0) { // We reached the end of the bitmaps
+        nextOffset = window[name + 'Bitmaps'].length
+      }
+    } else {
+      nextOffset = window[name + 'Bitmaps'].length
+    }
+    
+    let disabled = (w == 0 || h == 0) && adv == 0
+
+    if (!disabled) {
+      for (let k = 0; k < (nextOffset - currentOffset); k++) {
+        n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
+      }
+    }
+
+    grid = makeGlyphItem (n, w, h, char, adv, ow, oh, disabled)
+
+    function glyphAppendClosure(el, adv) {
+      setTimeout(function () {
+        advanceLoading(0.2 * adv)
+        $('#glyphs').append(el)
+        if (adv === 1) {
+          // Run the setGlyphTable function now
+          displayGlyphTable()
+        }
+      }, 1)
+    }
+
+    glyphAppendClosure(grid, (charIndex + 1) / glyphsArray.length)
+  }
+  
+  $('#export').prop( "disabled", false )
+  $('#reset').prop("disabled", false)
+  $('#createFont').prop( "disabled", true )
+  $('#extract').prop( "disabled", true )
+}
+
+function displayGlyphTable () {
+  const l = $('#glyphs').children().length
+  $('#glyphs').children().each(function (i) {
+
+    function setGlyphTableClosure(el, adv) {
+      setTimeout(function () {
+        advanceLoading(0.2 + 0.8 * adv)
+        setGlyphTable(el.children().find('.glyph'))
+        if (adv === 1) {
+          $('#loader').hide()
+        }
+      }, 1)
+    }
+
+    setGlyphTableClosure($(this), (i + 1) / l)
+  })
+}
+
+$(document).ready(function () {
+ 
+  var clip_data = {}
+
+  $('#new-character-code').parent().hide()
+  $('#add').attr('disabled', 'disabled')
+  $('#export').attr('disabled', 'disabled')
+  $('#reset').prop("disabled", 'disabled')
+  $('.ui.checkbox.use-charcode').checkbox()
+
+  $(document).on('change', '.ui.checkbox.use-charcode input', function (e) {
+    $('#new-character').parent().toggle()
+    $('#new-character-code').parent().toggle()
+    
+    if ($('input[name=charcode]').is(':checked')) {
+      if ($('#new-character-code').val() == '') {
+        $('.character').text('N/A')
+      } else {
+        $('.character').text(String.fromCharCode(parseInt($('#new-character-code').val(), 16)))
+      }
+    } else {
+      if ($('#new-character').val() == '') {
+        $('.charcode').text('N/A')
+      } else {
+        $('.charcode').text('0x' + $('#new-character').val().charCodeAt(0).toString(16).toUpperCase())
+      }
+    }
+  })
+  
+  $('#newfont-new-character-code').parent().hide()
+  $('.ui.checkbox.newfont-use-charcode').checkbox()
+  $(document).on('change', '.ui.checkbox.newfont-use-charcode input', function (e) {
+    $('#newfont-new-character').parent().toggle()
+    $('#newfont-new-character-code').parent().toggle()
+    
+    if ($('input[name=newfontCharcode]').is(':checked')) {
+      if ($('#newfont-new-character-code').val() == '') {
+        $('.newfontCharacter').text('N/A')
+      } else {
+        $('.newfontCharacter').text(String.fromCharCode(parseInt($('#newfont-new-character-code').val(), 16)))
+      }
+    } else {
+      if ($('#newfont-new-character').val() == '') {
+        $('.newfontCharcode').text('N/A')
+      } else {
+        $('.newfontCharcode').text('0x' + $('#newfont-new-character').val().charCodeAt(0).toString(16).toUpperCase())
+      }
+    }
+  })
+
+  $('#loader').hide()
+  window['name'] = null
+  window['last_part'] = null
+
+  $('#extract').click(function () {
+    advanceLoading(0)
+    $('#loader').fadeIn(function() {
+      extractFont()
+    })
+  })
+
+  $('#reset').click(function () {
+  
+    $('.ui.modal.confirmation p').text('The reset will close the font and discard any changes you made.')
+    $('.ui.modal.confirmation').modal({
+      closable: false,
+      onApprove: function() {
+        $('#glyphs').empty()
+        $('#source').val('')
+        $('#createFont').prop("disabled", false)
+        $('#extract').prop("disabled", false)
+        $('#add').prop("disabled", "disabled")
+        $('#export').prop("disabled", "disabled")
+        $('#reset').prop("disabled", "disabled")
+        $('.fontname').text('Fontname unknown').hide()
+      }
+    }).modal('show')
+  })
+
+  const fillPixel = (target, fill) => {
+    fill === '1' ? target.addClass('fill') : target.removeClass('fill')
+    const table = target.parent().parent().parent().find('.table.glyph')
+    updatePixels(table, -1, -1, parseInt(target.attr('data-x')), parseInt(target.attr('data-y')), fill)
+  }
+
+  let isFilling = false;
+  let fillingMode = '1';
+  $(document).on('mousedown', '.cell:not(.dead)', function (e) {
+    isFilling = true;
+    fillingMode = $(e.target).hasClass('fill') ? '0' : '1'
+    fillPixel($(e.target), fillingMode)
+  })
+  $(document).on('mouseup', '.cell:not(.dead)', function (e) {
+    isFilling = false;
+  })
+  $(document).on('mouseenter', '.cell:not(.dead)', function (e) {
+    if (isFilling) {
+      fillPixel($(e.target), fillingMode)
+    }
+  })
+
+  $(document).on('click', '.clip-handler', function (e) {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    if (targetID === 'clip-copy') {
+      clip_data.xadvance  = parseInt(table.attr('data-adv'))
+      clip_data.xoffset   = parseInt(table.attr('data-ow'))
+      clip_data.yoffset   = parseInt(table.attr('data-oh'))        
+      clip_data.width     = parseInt(table.attr('data-w'))
+      clip_data.height    = parseInt(table.attr('data-h'))        
+      clip_data.pixels    = table.attr('data-pixels')
+    } else if (targetID === 'clip-paste') {
+      table.attr('data-adv',      clip_data.xadvance)
+      table.attr('data-ow',       clip_data.xoffset)
+      table.attr('data-oh',       clip_data.yoffset)
+      table.attr('data-w',        clip_data.width)
+      table.attr('data-h',        clip_data.height)
+      table.attr('data-pixels',   clip_data.pixels)
+    }
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('click', '.row-handler', function (e) {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    let height = parseInt(table.attr('data-h'))
+
+    if (targetID === 'row-add') {
+      height++
+    } else if (targetID === 'row-remove') {
+      height--
+    }
+
+    updatePixels(table, -1, height, -1, -1, false)
+    table.attr('data-h', height)
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('click', '.col-handler', function (e) {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    let width = parseInt(table.attr('data-w'))
+
+    if (targetID === 'col-add') {
+      width++
+    } else if (targetID === 'col-remove') {
+      width--
+    }
+
+    updatePixels(table, width, -1, -1, -1, false)
+    table.attr('data-w', width)
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('click', '.base-handler', function (e) {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    if (targetID === 'base-add') {
+      table.attr('data-oh', parseInt(table.attr('data-oh')) + 1)
+    } else if (targetID === 'base-remove') {
+      table.attr('data-oh', parseInt(table.attr('data-oh')) - 1)
+    }
+
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('click', '.xadv-handler', function (e) {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    if (targetID === 'xadv-add') {
+      table.attr('data-adv', parseInt(table.attr('data-adv')) + 1)
+    } else if (targetID === 'xadv-remove') {
+      table.attr('data-adv', parseInt(table.attr('data-adv')) - 1)
+    }
+
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('click', '.xoff-handler', function (e) {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    if (targetID === 'xoff-add') {
+      table.attr('data-ow', parseInt(table.attr('data-ow')) + 1)
+    } else if (targetID === 'xoff-remove') {
+      table.attr('data-ow', parseInt(table.attr('data-ow')) - 1)
+    }
+
+    setGlyphTable(table)
+    return false
+  })
+
+  $(document).on('change', '.dis-handler', function (e) {
+    const table = $(e.target).parent().parent().parent().parent().find('.table.glyph')
+    table.attr('data-dis', 1 - parseInt(table.attr('data-dis')))
+    table.fadeTo('fast', 1 - 0.9 * table.attr('data-dis'))
+    return false
+  })
+
+  $(document).on('keyup', '#new-character', function (e) {
+    if ($('#new-character').val() == '') {
+      $('.charcode').text('N/A')
+    } else {
+      $('.charcode').text('0x' + $('#new-character').val().charCodeAt(0).toString(16).toUpperCase())
+    }
+  })
+
+  $(document).on('keyup', '#new-character-code', function (e) {
+    if ($('#new-character-code').val() == '') {
+      $('.character').text('N/A')
+    } else {
+      $('.character').text(String.fromCharCode(parseInt($('#new-character-code').val(), 16)))
+    }
+  })
+  
+  $(document).on('keyup', '#newfont-new-character', function (e) {
+    if ($('#newfont-new-character').val() == '') {
+      $('.newfontCharcode').text('N/A')
+    } else {
+      $('.newfontCharcode').text('0x' + $('#newfont-new-character').val().charCodeAt(0).toString(16).toUpperCase())
+    }
+  })
+
+  $(document).on('keyup', '#newfont-new-character-code', function (e) {
+    if ($('#newfont-new-character-code').val() == '') {
+      $('.newfontCharacter').text('N/A')
+    } else {
+      $('.newfontCharacter').text(String.fromCharCode(parseInt($('#newfont-new-character-code').val(), 16)))
+    }
+  })
+  
+  $('#createFont').click(function () {
+    $('input[name=newfontCharcode]').prop('checked', false)
+    $('#newfont-new-character').parent().show()
+    $('#newfont-new-character-code').parent().hide()
+    if ($('#newfont-new-character').val() == '') {
+      $('.charcode').text('N/A')
+    } else {
+      $('.charcode').text('0x' + $('#newfont-new-character').val().charCodeAt(0).toString(16).toUpperCase())
+    }
+    if ($('#newfont-new-character-code').val() == '') {
+      $('.character').text('N/A')
+    } else {
+      $('.character').text(String.fromCharCode($('#newfont-new-character-code').val()))
+    }
+    
+    $('.ui.modal.newfont').modal({
+      closable: false,
+      
+      onApprove: function() {
+        let name = $('#newfont-name').val()
+        if (name.length < 1) {
+          $('.ui.modal.message p').text('The font must have a name, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+        
+        
+        let newfontHeight = parseInt($('#newfont-height').val())
+        if (newfontHeight < 1) {
+          $('.ui.modal.message p').text('The font height must be greater than 0, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+        
+        
+        // Get new character data
+        let newChar
+        let newCharCode
+        if ($('input[name=newfontCharcode]').is(':checked')) {
+          newCharCode = parseInt($('#newfont-new-character-code').val(), 16)
+          newChar = String.fromCharCode(newCharCode)
+        } else {
+          newChar = $('#newfont-new-character').val()
+          newCharCode = $('#newfont-new-character').val().charCodeAt(0)
+        }
+
+        // Check character validity
+        if (newChar == '') {
+          $('.ui.modal.message p').text('This character is either blank or incorrect, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        if (newCharCode < 1) {
+          $('.ui.modal.message p').text('This is a special control character, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        if (newCharCode > 65535) {
+          $('.ui.modal.message p').text('This character is out of range, I\'m not creating a new font with it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+        
+        // Set the font parameters
+        window['first'] = newCharCode
+        window['last'] = newCharCode
+        window['name'] = name + '_'
+        window[name + '_Bitmaps'] = [] // This is otherwise created by the eval() in extract font
+        window['maxBaseline'] = newfontHeight
+        window['last_part'] = 'const GFXfont ' + name + ' PROGMEM = {(uint8_t *) ' + name + '_Bitmaps, (GFXglyph *)' + name + '_Glyphs, 0x00, 0x00, ' + newfontHeight + '};'
+        
+        // Show the data
+        $('.fontname').text('(' + name + ')').show()
+        $('#firstglyph').val('0x' + window["first"].toString(16))
+        $('#lastglyph').val('0x' + window["last"].toString(16))
+        $('#glyphs').empty()
+
+        
+        // Change button states
+        $('#add').attr('disabled', false)
+        $('#export').prop( "disabled", false )
+        $('#createFont').prop( "disabled", true )
+        $('#extract').prop( "disabled", true )
+        $('#reset').prop("disabled", false)
+        
+        // Add the new character
+        const grid = makeGlyphItem (' ' , 1, 1, newChar, 4, 0, -newfontHeight, false)
+        $('#glyphs').append(grid)
+        
+        setGlyphTable(grid.find('.glyph'))
+      }
+    })
+    .modal('show')
+  })
+
+  $('#add').click(function () {
+    $('input[name=charcode]').prop('checked', false)
+    $('#new-character').parent().show()
+    $('#new-character-code').parent().hide()
+    if ($('#new-character').val() == '') {
+      $('.charcode').text('N/A')
+    } else {
+      $('.charcode').text('0x' + $('#new-character').val().charCodeAt(0).toString(16).toUpperCase())
+    }
+    if ($('#new-character-code').val() == '') {
+      $('.character').text('N/A')
+    } else {
+      $('.character').text(String.fromCharCode($('#new-character-code').val()))
+    }
+    
+    // Choose a character
+    $('.ui.modal.choose').modal({
+      closable: false,
+      onApprove: function() {
+        const firstglyph = parseInt($('#firstglyph').val(), 16)
+        const lastglyph = parseInt($('#lastglyph').val(), 16)
+
+        let newChar
+        let newCharCode
+        if ($('input[name=charcode]').is(':checked')) {
+          newCharCode = parseInt($('#new-character-code').val(), 16)
+          newChar = String.fromCharCode(newCharCode)
+        } else {
+          newChar = $('#new-character').val()
+          newCharCode = $('#new-character').val().charCodeAt(0)
+        }
+
+        if (newChar == '') {
+          $('.ui.modal.message p').text('This character is either blank or incorrect, I\'m not adding it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        if (newCharCode < 1) {
+          $('.ui.modal.message p').text('This is a special control character, I\'m not adding it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        if (newCharCode > 65535) {
+          $('.ui.modal.message p').text('This character is out of range, I\'m not adding it.')
+          $('.ui.modal.message').modal('show')
+          return
+        }
+
+        // Check that the character is not already existing
+        if (newCharCode > lastglyph || newCharCode < firstglyph) {
+          let start, end;
+          if (newCharCode > lastglyph) {
+            start = lastglyph + 1
+            end = newCharCode
+            window['last'] = '0x' + newCharCode.toString(16).toUpperCase()
+            $('#lastglyph').val(window['last'])
+          } else {
+            start = newCharCode
+            end = firstglyph - 1
+            window['first'] = '0x' + newCharCode.toString(16).toUpperCase()
+            $('#firstglyph').val(window['first'])
+          }
+          
+          if (newCharCode < firstglyph) {
+            for (j = end; j >= start; j--) {
+              const char = String.fromCharCode(parseInt(j))
+              const grid = makeGlyphItem (' ', 1, 1, char, 4, 0, -window['maxBaseline'], !(j === newCharCode))
+              $('#glyphs').prepend(grid)
+              setGlyphTable(grid.find('.glyph'))
+            }
+          } else {
+            for (j = start; j <= end; j++) {
+              const char = String.fromCharCode(parseInt(j))
+              const grid = makeGlyphItem (' ', 1, 1, char, 4, 0, -window['maxBaseline'], !(j === newCharCode))
+              $('#glyphs').append(grid)
+              setGlyphTable(grid.find('.glyph'))
+            }
+          }
+          
+        } else {
+          $('.ui.modal.message p').text('This character is already present in the actual set, I\'m not adding it.')
+          $('.ui.modal.message').modal('show')
+        }
+      }
+    })
+    .modal('show');
+
+  })
+
+  $('#export').click(function () {
+    const glyphs = []
+    const bitsArray = []
+    let offset = 0
+    const firstglyph = parseInt($('#firstglyph').val(), 16)
+    const lastglyph = parseInt($('#lastglyph').val(), 16)
+
+    $('.table.glyph').each(function () {
+      const t = $(this)
+      // Ignore glyphs outside of requested range
+      if (t.attr('data-char').charCodeAt(0) < firstglyph || t.attr('data-char').charCodeAt(0) > lastglyph) {
+        return
+      }
+
+      var dataPixels = $(this).attr('data-pixels')
+      if (t.attr('data-dis') == 1) {
+        dataPixels = ''
+      }
+      let bits = ''
+
+      for (let i = 0; i < dataPixels.length; i++) {
+        bits += dataPixels.charAt(i)
+        // Each 8 bits, we form the HEX value
+        if (bits.length == 8) {
+          bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
+          bits = ''
+        }
+      }
+
+      // Remaining bits with padding then, if necessary
+      if (bits != '') {
+        bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
+      }
+
+      // Set data width/height to 0 for disabled glyphs
+      const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
+      const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
+
+      let char = t.attr('data-char')
+      const charCode = char.charCodeAt(0).toString(16).toUpperCase()
+      const charDisplay = char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, 'non-printable')
+      const comment = '// 0x' + charCode + ' \'' + charDisplay + '\''
+      
+      if (t.attr('data-dis') == 0) {
+        glyphs.push(
+          '  { ' +
+          ('     ' + offset).slice(-5) + ', ' +
+          ('   ' + w).slice(-3) + ', ' +
+          ('   ' + h).slice(-3) + ', ' +
+          ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
+          ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
+          ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' },   ' +
+          comment)
+      } else {
+        glyphs.push(
+          '  { ' +
+          '    0, ' +
+          '  0, ' +
+          '  0, ' +
+          '  0, ' +
+          '   0, ' +
+          '   0 },   ' +
+          comment)
+      }
+      
+      offset = bitsArray.length
+    })
+
+    // Bitmaps
+    let bitmapsOutput = 'const uint8_t ' + name + 'Bitmaps[] PROGMEM = {\n'
+    // We want to join per 12 words
+    const limit = Math.floor(bitsArray.length / 12)
+    for (let nb = 0; nb < limit; nb++) {
+      const isLastLine = (limit * 12 === bitsArray.length) && (nb === limit - 1)
+
+      bitmapsOutput += '  ' + bitsArray[nb * 12] + ', ' +
+                              bitsArray[nb * 12 + 1] + ', ' +
+                              bitsArray[nb * 12 + 2] + ', ' +
+                              bitsArray[nb * 12 + 3] + ', ' +
+                              bitsArray[nb * 12 + 4] + ', ' +
+                              bitsArray[nb * 12 + 5] + ', ' +
+                              bitsArray[nb * 12 + 6] + ', ' +
+                              bitsArray[nb * 12 + 7] + ', ' +
+                              bitsArray[nb * 12 + 8] + ', ' +
+                              bitsArray[nb * 12 + 9] + ', ' +
+                              bitsArray[nb * 12 + 10] + ', ' +
+                              bitsArray[nb * 12 + 11] + (isLastLine ? '' : ',') + ' \n'
+    }
+
+    if (limit * 12 !== bitsArray.length) {
+      bitmapsOutput += '  ' + bitsArray.slice(-(bitsArray.length - limit * 12)).join(', ') + '\n'
+    }
+    bitmapsOutput += '};\n\n'
+
+    // Glyphs
+    // The last glyph has a ',' too much at the end, we need to remove it (it's easier than to avoid putting it in the first place)
+    glyphs[glyphs.length - 1] = glyphs[glyphs.length - 1].replace('},', '} ')
+    let glyphsOutput = 'const GFXglyph ' + name + 'Glyphs[] PROGMEM = {\n'
+    glyphsOutput += glyphs.join('\n') + '\n};\n\n'
+
+    // Create a new last_part with the updated first & last glyph values in it
+    let parts = window['last_part'].split(',')    
+    parts[2] = '0x' + firstglyph.toString(16).toUpperCase()
+    parts[3] = '0x' + lastglyph.toString(16).toUpperCase()
+    const updated_last_part = parts.join(", ",parts)
+
+    data = bitmapsOutput + glyphsOutput + updated_last_part
+    $('#result').val(data)
+  })
+})
+
+</script>
 </html>
-<script src="script.js"></script>
