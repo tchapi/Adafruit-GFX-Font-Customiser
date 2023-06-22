@@ -545,6 +545,17 @@ function extractFont () {
   const last_part = data.match(last_part_re)
   window['last_part'] = last_part[0]
 
+  const glyph_part_re = /const\ GFXglyph/
+
+  // Ignore any lines before font definition
+  // In case the parts come out of order, cut the lines until the first of any
+  // of the parts we are interested in
+  data = data.slice(Math.min(
+    data.indexOf(found[0]),
+    data.indexOf(last_part[0]),
+    data.search(glyph_part_re),
+  ))
+
   // Get first, last and yOffset
   let parts = last_part[0].split(',')
   const number_hexa_re = /0[xX][0-9a-fA-F]+/gi
