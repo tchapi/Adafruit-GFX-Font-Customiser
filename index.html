@@ -277,7 +277,7 @@
             <label>Output</label>
             <textarea id="result" readonly></textarea>
           </div>
-          <div class="two fields">
+          <div class="three fields">
             <div class="field">
               <label>First glyph to export</label>
               <input type="text" id="firstglyph" value="0x00" />
@@ -285,6 +285,13 @@
             <div class="field">
               <label>Last glyph to export</label>
               <input type="text" id="lastglyph" value="0x00" />
+            </div>
+            <div class="field">
+              <label><code>Adafruit_GFX</code> headers</label>
+              <select class="ui dropdown" id="import_definition">
+                <option value="0" selected>Exclude</option>
+                <option value="1">Include</option>
+              </select>
             </div>
           </div>
           <button class="ui button green" id="export" disabled="disabled"><i class="icon download"></i> Process and create file</button>
@@ -526,12 +533,16 @@ function advanceLoading (percent) {
 function extractFont () {
   let data = $('#source').val()
 
-  // Extract name
-  const re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
-  const found = data.match(re)
+  const bitmaps_part_re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
+  const glyph_part_re = /const\ GFXglyph/
+  const font_part_re = /const\ GFXfont([\s\S]*)/g
+  const headers_part_re = /\#include[\s\S]+<Adafruit\_GFX\.h>/
 
-  if (found != null && found.length > 1) {
-    window['name'] = found[1]
+  // Extract name
+  const font_name = data.match(bitmaps_part_re)
+
+  if (font_name != null && font_name.length > 1) {
+    window['name'] = font_name[1]
   } else {
     alert('No correct font file found (name missing), please paste the content of an Adafruit GFX font file first.')
     $("#loader").hide()
@@ -540,24 +551,28 @@ function extractFont () {
 
   $('#glyphs').empty()
 
-  // extract GFXFont part
-  const last_part_re = /const\ GFXfont([\s\S]*)/g
-  const last_part = data.match(last_part_re)
-  window['last_part'] = last_part[0]
+  // Extract GFXFont part
+  const font_def = data.match(font_part_re)
+  window['font_def'] = font_def[0]
 
-  const glyph_part_re = /const\ GFXglyph/
+  // In case we have a header, automatically switch the header selection to "Include"
+  if (data.search(headers_part_re) > 0) {
+    $('select#import_definition').val("1")
+  } else {
+    $('select#import_definition').val("0")
+  }
 
-  // Ignore any lines before font definition
+  // Ignore any lines before the font definition (like headers, for instance)
   // In case the parts come out of order, cut the lines until the first of any
-  // of the parts we are interested in
+  // of the parts we are interested in.
   data = data.slice(Math.min(
-    data.indexOf(found[0]),
-    data.indexOf(last_part[0]),
+    data.indexOf(font_name[0]),
+    data.indexOf(font_def[0]),
     data.search(glyph_part_re),
   ))
 
   // Get first, last and yOffset
-  let parts = last_part[0].split(',')
+  let parts = font_def[0].split(',')
   const number_hexa_re = /0[xX][0-9a-fA-F]+/gi
   const number_dec_re = /[0-9]+/gi
   if (parts[2].match(number_hexa_re)) {
@@ -580,7 +595,7 @@ function extractFont () {
     return
   }
 
-  data = data.replace(last_part[0], '')
+  data = data.replace(font_def[0], '')
   data = data.replace(/\{/gi, '[').replace(/\}/gi, ']')
   data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
 
@@ -592,7 +607,7 @@ function extractFont () {
       console.log(window["size"])
       console.log(window["first"])
       console.log(window["last"])
-      console.log(window["last_part"])
+      console.log(window["font_def"])
       console.log(window[name + "Bitmaps"])
       console.log(window[name + "Glyphs"])
       */
@@ -756,7 +771,7 @@ $(document).ready(function () {
 
   $('#loader').hide()
   window['name'] = null
-  window['last_part'] = null
+  window['font_def'] = null
 
   $('#extract').click(function () {
     advanceLoading(0)
@@ -938,7 +953,7 @@ $(document).ready(function () {
       onApprove: function() {
         let name = $('#newfont-name').val()
         if (name.length < 1) {
-          $('.ui.modal.message p').text('The font must have a name, I\'m not creating a new font with it.')
+          $('.ui.modal.message p').text('The font must have a name, I\'m not creating a new font without it.')
           $('.ui.modal.message').modal('show')
           return
         }
@@ -946,7 +961,7 @@ $(document).ready(function () {
         
         let newfontHeight = parseInt($('#newfont-height').val())
         if (newfontHeight < 1) {
-          $('.ui.modal.message p').text('The font height must be greater than 0, I\'m not creating a new font with it.')
+          $('.ui.modal.message p').text('The font height must be greater than 0, I\'m not creating a new font with this.')
           $('.ui.modal.message').modal('show')
           return
         }
@@ -988,7 +1003,7 @@ $(document).ready(function () {
         window['name'] = name + '_'
         window[name + '_Bitmaps'] = [] // This is otherwise created by the eval() in extract font
         window['maxBaseline'] = newfontHeight
-        window['last_part'] = 'const GFXfont ' + name + ' PROGMEM = {(uint8_t *) ' + name + '_Bitmaps, (GFXglyph *)' + name + '_Glyphs, 0x00, 0x00, ' + newfontHeight + '};'
+        window['font_def'] = 'const GFXfont ' + name + ' PROGMEM = {(uint8_t *) ' + name + '_Bitmaps, (GFXglyph *)' + name + '_Glyphs, 0x00, 0x00, ' + newfontHeight + '};'
         
         // Show the data
         $('.fontname').text('(' + name + ')').show()
@@ -1111,6 +1126,7 @@ $(document).ready(function () {
     let offset = 0
     const firstglyph = parseInt($('#firstglyph').val(), 16)
     const lastglyph = parseInt($('#lastglyph').val(), 16)
+    const shouldAddImportDefinition = $('select#import_definition').val() === "1"
 
     $('.table.glyph').each(function () {
       const t = $(this)
@@ -1205,13 +1221,20 @@ $(document).ready(function () {
     let glyphsOutput = 'const GFXglyph ' + name + 'Glyphs[] PROGMEM = {\n'
     glyphsOutput += glyphs.join('\n') + '\n};\n\n'
 
-    // Create a new last_part with the updated first & last glyph values in it
-    let parts = window['last_part'].split(',')    
+    // Create a new font_def with the updated first & last glyph values in it
+    let parts = window['font_def'].split(',')
     parts[2] = '0x' + firstglyph.toString(16).toUpperCase()
     parts[3] = '0x' + lastglyph.toString(16).toUpperCase()
-    const updated_last_part = parts.join(", ",parts)
+    const updated_font_def = parts.join(", ",parts)
 
-    data = bitmapsOutput + glyphsOutput + updated_last_part
+    data = bitmapsOutput + glyphsOutput + updated_font_def
+
+    // Import definitions if needed
+    if (shouldAddImportDefinition) {
+      const import_definition = "#pragma once\n#include <Adafruit_GFX.h>\n\n"
+      data = import_definition + data
+    }
+
     $('#result').val(data)
   })
 })
