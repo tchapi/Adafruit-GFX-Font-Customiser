@@ -277,7 +277,7 @@
             <label>Output</label>
             <textarea id="result" readonly></textarea>
           </div>
-          <div class="three fields">
+          <div class="two fields">
             <div class="field">
               <label>First glyph to export</label>
               <input type="text" id="firstglyph" value="0x00" />
@@ -285,13 +285,6 @@
             <div class="field">
               <label>Last glyph to export</label>
               <input type="text" id="lastglyph" value="0x00" />
-            </div>
-            <div class="field">
-              <label><code>Adafruit_GFX</code> headers</label>
-              <select class="ui dropdown" id="import_definition">
-                <option value="0" selected>Exclude</option>
-                <option value="1">Include</option>
-              </select>
             </div>
           </div>
           <button class="ui button green" id="export" disabled="disabled"><i class="icon download"></i> Process and create file</button>
@@ -536,7 +529,6 @@ function extractFont () {
   const bitmaps_part_re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
   const glyph_part_re = /const\ GFXglyph/
   const font_part_re = /const\ GFXfont([\s\S]*)/g
-  const headers_part_re = /\#include[\s\S]+<Adafruit\_GFX\.h>/
 
   // Extract name
   const font_name = data.match(bitmaps_part_re)
@@ -555,21 +547,16 @@ function extractFont () {
   const font_def = data.match(font_part_re)
   window['font_def'] = font_def[0]
 
-  // In case we have a header, automatically switch the header selection to "Include"
-  if (data.search(headers_part_re) > 0) {
-    $('select#import_definition').val("1")
-  } else {
-    $('select#import_definition').val("0")
-  }
-
   // Ignore any lines before the font definition (like headers, for instance)
   // In case the parts come out of order, cut the lines until the first of any
   // of the parts we are interested in.
-  data = data.slice(Math.min(
+  const slice_index = Math.min(
     data.indexOf(font_name[0]),
     data.indexOf(font_def[0]),
     data.search(glyph_part_re),
-  ))
+  )
+  window.font_preamble = data.slice(0, slice_index)
+  data = data.slice(slice_index)
 
   // Get first, last and yOffset
   let parts = font_def[0].split(',')
@@ -1126,7 +1113,6 @@ $(document).ready(function () {
     let offset = 0
     const firstglyph = parseInt($('#firstglyph').val(), 16)
     const lastglyph = parseInt($('#lastglyph').val(), 16)
-    const shouldAddImportDefinition = $('select#import_definition').val() === "1"
 
     $('.table.glyph').each(function () {
       const t = $(this)
@@ -1229,11 +1215,8 @@ $(document).ready(function () {
 
     data = bitmapsOutput + glyphsOutput + updated_font_def
 
-    // Import definitions if needed
-    if (shouldAddImportDefinition) {
-      const import_definition = "#pragma once\n#include <Adafruit_GFX.h>\n\n"
-      data = import_definition + data
-    }
+    // Add back the font preamble, if present
+    data = (window.font_preamble ?? '') + data
 
     $('#result').val(data)
   })
