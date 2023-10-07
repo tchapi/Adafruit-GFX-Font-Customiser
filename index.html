@@ -990,6 +990,7 @@ $(document).ready(function () {
         window['name'] = name + '_'
         window[name + '_Bitmaps'] = [] // This is otherwise created by the eval() in extract font
         window['maxBaseline'] = newfontHeight
+        window['maxH'] = newfontHeight
         window['font_def'] = 'const GFXfont ' + name + ' PROGMEM = {(uint8_t *) ' + name + '_Bitmaps, (GFXglyph *)' + name + '_Glyphs, 0x00, 0x00, ' + newfontHeight + '};'
         
         // Show the data
