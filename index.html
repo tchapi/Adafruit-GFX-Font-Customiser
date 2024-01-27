@@ -385,11 +385,11 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
   grid.append(div)
 
   const buttonBar = $('<div class="ui bottom attached warning message inner centered"></div>')
-  buttonBar.append(makeUpDownButton('Rows:'+h, 'row', 'purple', 60))
-  buttonBar.append(makeUpDownButton('Cols:'+w, 'col', 'violet', 60))
-  buttonBar.append(makeUpDownButton('Base:'+oh, 'base', 'green', 60))
-  buttonBar.append(makeUpDownButton('XOff:'+ow, 'xoff', 'blue', 60))
-  buttonBar.append(makeUpDownButton('XAdv:'+adv, 'xadv', 'teal', 60))
+  buttonBar.append(makeUpDownButton('Rows: '+h, 'row', 'purple', 60))
+  buttonBar.append(makeUpDownButton('Cols: '+w, 'col', 'violet', 60))
+  buttonBar.append(makeUpDownButton('Base: '+oh, 'base', 'green', 60))
+  buttonBar.append(makeUpDownButton('XOff: '+ow, 'xoff', 'blue', 60))
+  buttonBar.append(makeUpDownButton('XAdv: '+adv, 'xadv', 'teal', 60))
   buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 120, disabled))
 
   grid.append(buttonBar)
@@ -822,7 +822,7 @@ $(document).ready(function () {
 
     updatePixels(table, -1, height, -1, -1, false)
     table.attr('data-h', height)
-    valueDisplay.innerText = "Rows:" + height
+    valueDisplay.innerText = "Rows: " + height
     setGlyphTable(table)
     return false
   })
@@ -841,7 +841,7 @@ $(document).ready(function () {
 
     updatePixels(table, width, -1, -1, -1, false)
     table.attr('data-w', width)
-    valueDisplay.innerText = "Cols:" + width
+    valueDisplay.innerText = "Cols: " + width
     setGlyphTable(table)
     return false
   })
@@ -858,7 +858,7 @@ $(document).ready(function () {
       base--
     }
     table.attr('data-oh', base)
-    valueDisplay.innerText = "Base:" + base
+    valueDisplay.innerText = "Base: " + base
     setGlyphTable(table)
     return false
   })
@@ -875,7 +875,7 @@ $(document).ready(function () {
       xadv--
     }
     table.attr('data-adv',xadv)
-    valueDisplay.innerText = "XAdv:" + xadv
+    valueDisplay.innerText = "XAdv: " + xadv
     setGlyphTable(table)
     return false
   })
@@ -892,7 +892,7 @@ $(document).ready(function () {
       ow--
     }
     table.attr('data-ow', ow)
-    valueDisplay.innerText = "XOff:" + ow
+    valueDisplay.innerText = "XOff: " + ow
 
     setGlyphTable(table)
     return false
