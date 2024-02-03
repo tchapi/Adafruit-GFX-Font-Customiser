@@ -344,7 +344,7 @@ function makeUpDownButton (name, func, color, width) {
   const button = $('<div class="ui mini compact buttons" style="margin:1px"></div>')
   const style = 'ui compact button ' + func + '-handler ' + color
   button.append('<button id="' + func + '-remove" class="' + style + '">-</button>')
-  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + '">' + name + '</button>')
+  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + ';padding:0;">' + name + '</button>')
   button.append('<button id="' + func + '-add" class="' + style + '">+</button>')
   return button
 }
@@ -385,12 +385,12 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
   grid.append(div)
 
   const buttonBar = $('<div class="ui bottom attached warning message inner centered"></div>')
-  buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
-  buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
-  buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
-  buttonBar.append(makeUpDownButton('XOff', 'xoff', 'blue', 50))
-  buttonBar.append(makeUpDownButton('XAdv', 'xadv', 'teal', 50))
-  buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 110, disabled))
+  buttonBar.append(makeUpDownButton('Rows: '+h, 'row', 'purple', 60))
+  buttonBar.append(makeUpDownButton('Cols: '+w, 'col', 'violet', 60))
+  buttonBar.append(makeUpDownButton('Base: '+oh, 'base', 'green', 60))
+  buttonBar.append(makeUpDownButton('XOff: '+ow, 'xoff', 'blue', 60))
+  buttonBar.append(makeUpDownButton('XAdv: '+adv, 'xadv', 'teal', 60))
+  buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 120, disabled))
 
   grid.append(buttonBar)
 
@@ -810,6 +810,8 @@ $(document).ready(function () {
   $(document).on('click', '.row-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    const valueDisplay = $(e.target).parent().find('#row-value')[0]
+
     let height = parseInt(table.attr('data-h'))
 
     if (targetID === 'row-add') {
@@ -820,6 +822,7 @@ $(document).ready(function () {
 
     updatePixels(table, -1, height, -1, -1, false)
     table.attr('data-h', height)
+    valueDisplay.innerText = "Rows: " + height
     setGlyphTable(table)
     return false
   })
@@ -827,6 +830,7 @@ $(document).ready(function () {
   $(document).on('click', '.col-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    const valueDisplay = $(e.target).parent().find('#col-value')[0]
     let width = parseInt(table.attr('data-w'))
 
     if (targetID === 'col-add') {
@@ -837,6 +841,7 @@ $(document).ready(function () {
 
     updatePixels(table, width, -1, -1, -1, false)
     table.attr('data-w', width)
+    valueDisplay.innerText = "Cols: " + width
     setGlyphTable(table)
     return false
   })
@@ -844,12 +849,16 @@ $(document).ready(function () {
   $(document).on('click', '.base-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
-    if (targetID === 'base-add') {
-      table.attr('data-oh', parseInt(table.attr('data-oh')) + 1)
-    } else if (targetID === 'base-remove') {
-      table.attr('data-oh', parseInt(table.attr('data-oh')) - 1)
-    }
+    const valueDisplay = $(e.target).parent().find('#base-value')[0]
+    let base = parseInt(table.attr('data-oh'))
 
+    if (targetID === 'base-add') {
+      base++ 
+    } else if (targetID === 'base-remove') {
+      base--
+    }
+    table.attr('data-oh', base)
+    valueDisplay.innerText = "Base: " + base
     setGlyphTable(table)
     return false
   })
@@ -857,12 +866,16 @@ $(document).ready(function () {
   $(document).on('click', '.xadv-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
-    if (targetID === 'xadv-add') {
-      table.attr('data-adv', parseInt(table.attr('data-adv')) + 1)
-    } else if (targetID === 'xadv-remove') {
-      table.attr('data-adv', parseInt(table.attr('data-adv')) - 1)
-    }
+    const valueDisplay = $(e.target).parent().find('#xadv-value')[0]
+    let xadv = parseInt(table.attr('data-adv'))
 
+    if (targetID === 'xadv-add') {
+      xadv++
+    } else if (targetID === 'xadv-remove') {
+      xadv--
+    }
+    table.attr('data-adv',xadv)
+    valueDisplay.innerText = "XAdv: " + xadv
     setGlyphTable(table)
     return false
   })
@@ -870,11 +883,16 @@ $(document).ready(function () {
   $(document).on('click', '.xoff-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    const valueDisplay = $(e.target).parent().find('#xoff-value')[0]
+    let ow = parseInt(table.attr('data-ow'))
+
     if (targetID === 'xoff-add') {
-      table.attr('data-ow', parseInt(table.attr('data-ow')) + 1)
+      ow++
     } else if (targetID === 'xoff-remove') {
-      table.attr('data-ow', parseInt(table.attr('data-ow')) - 1)
+      ow--
     }
+    table.attr('data-ow', ow)
+    valueDisplay.innerText = "XOff: " + ow
 
     setGlyphTable(table)
     return false
