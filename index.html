@@ -168,6 +168,7 @@
             <textarea id="source"></textarea>
           </div>
             <button class="ui button teal" id="extract"><i class="icon upload"></i> Extract</button>
+            <button class="ui button teal" onclick="$('#extract').trigger('click', [1])"><i class="icon upload"></i> ... compressed (<input type="checkbox" checked id="unXor" onclick="event.cancelBubble=true"> & unXOR)</button>
             <button class="ui button red right floated" id="reset" disabled><i class="icon undo"></i> Reset</button>
             <button class="ui button blue right floated" id="createFont"><i class="icon file outline"></i> Create a new font</button>
         </div>
@@ -523,7 +524,7 @@ function advanceLoading (percent) {
   element.style.width = Math.floor(294 * percent)
 }
 
-function extractFont () {
+function extractFont (packed) {
   let data = $('#source').val()
 
   const bitmaps_part_re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
@@ -633,8 +634,8 @@ function extractFont () {
     const charIndex = parseInt(ind)
     // for each glyph
     const char = String.fromCharCode(parseInt(window['first'], 16) + charIndex)
-    const w = glyphsArray[ind][1]
-    const h = glyphsArray[ind][2]
+    let w = glyphsArray[ind][1]
+    let h = glyphsArray[ind][2]
     const adv = glyphsArray[ind][3]
     const ow = glyphsArray[ind][4]
     const oh = glyphsArray[ind][5]
@@ -643,6 +644,33 @@ function extractFont () {
     // extract data: current offset
     currentOffset = glyphsArray[charIndex][0]
 
+    let unpackedSize = h * w;
+    let packedTmp = packed;
+    let bo = 0;
+    if (packed)
+    {
+      currentOffset = 0;
+      nextOffset = glyphsArray[0][0];
+      let i = 0;
+      while (i <= charIndex) {
+        packedTmp = packed && (glyphsArray[i][0] != unpackedSize);
+        if (packedTmp) { // packed less bits to skip
+          bo += (glyphsArray[i][0] >> 3);
+          if(glyphsArray[i][0] & 7) bo++;
+        } else {
+          bo += (unpackedSize >> 3);
+          if(unpackedSize & 7) bo++;
+        }
+        if (++i > charIndex) break;
+        currentOffset = bo;
+        w = glyphsArray[i][1];
+        h = glyphsArray[i][2];
+        unpackedSize = h * w;
+      }
+      nextOffset = bo;
+    }
+    else
+  {
     // extract data: next offset
     if (charIndex + 1 < glyphsArray.length) {
       // To get the next offset, we need to find the next non-disabled
@@ -658,14 +686,58 @@ function extractFont () {
     } else {
       nextOffset = window[name + 'Bitmaps'].length
     }
-    
+  }  
     let disabled = (w == 0 || h == 0) && adv == 0
 
     if (!disabled) {
       for (let k = 0; k < (nextOffset - currentOffset); k++) {
         n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
       }
+      if (packedTmp && glyphsArray[ind][0] != unpackedSize)
+      {
+        let blockLen = parseInt(n.substr(0, 8), 2);
+        let restoredBlocks = "";
+        let bInd = 8;
+        while (unpackedSize > 0)
+        {
+          if (n[bInd] == '1') {
+            restoredBlocks += n.substr(++bInd, blockLen);
+            bInd += blockLen;
+          } else {
+            restoredBlocks += "0".repeat(blockLen);
+            bInd++;
+          }
+          unpackedSize -= blockLen;
+        }
+        n = restoredBlocks;
+      }
     }
+
+    const xor = packedTmp && document.getElementById("unXor").checked;
+    function xorData(n, w, h)
+    {
+      let res = [];
+      for(let y=0;y<h;y++)
+      {
+        if (!y) {
+          res.push(n.substr(0, w)); // keep 1st row intact
+          continue;
+        }
+        function xorRow(xoring, xored)
+        {
+          let res = [];
+          for(let i=0;i<xoring.length;i++)
+          {
+            res.push((xoring[i] == xored[i] ? '0' : '1'));
+          }
+          return res.join("");
+        }
+        const pos = y*w;
+        res.push(xorRow(res[y-1], n.substr(pos)));
+      }
+      return res.join("");
+    }
+    if (xor) n = xorData(n, w, h);
 
     grid = makeGlyphItem (n, w, h, char, adv, ow, oh, disabled)
 
@@ -760,10 +832,10 @@ $(document).ready(function () {
   window['name'] = null
   window['font_def'] = null
 
-  $('#extract').click(function () {
+  $('#extract').click(function (event, packed) {
     advanceLoading(0)
     $('#loader').fadeIn(function() {
-      extractFont()
+      extractFont(packed)
     })
   })
 
