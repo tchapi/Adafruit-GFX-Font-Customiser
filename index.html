@@ -629,6 +629,18 @@ function extractFont (packed) {
   // Calculate the ideal glyph width. 160px is the minimum (for the buttons)
   window['glyph_table_width'] = Math.max(160, maxW * 11 + 30 /* some margin */)
 
+  const packedFont = glyphsArray[0][0] != 0;
+  const blockLen = window[name + 'Bitmaps'].pop(); // last element
+  const averageCharSize = parseInt(window[name + 'Bitmaps'].length / glyphsArray.length);
+  if (packedFont) {
+    for(let i=0;i<glyphsArray.length;i++)
+    {
+      if (glyphsArray[i][0] == -32768)
+        glyphsArray[i][0] = 0; // empty char
+      else glyphsArray[i][0] += i * averageCharSize; // adjust position by average to better fit bit position to I16
+    }
+  }
+
   // Display tables
   for (ind in glyphsArray) {
     const charIndex = parseInt(ind)
@@ -644,33 +656,6 @@ function extractFont (packed) {
     // extract data: current offset
     currentOffset = glyphsArray[charIndex][0]
 
-    let unpackedSize = h * w;
-    let packedTmp = packed;
-    let bo = 0;
-    if (packed)
-    {
-      currentOffset = 0;
-      nextOffset = glyphsArray[0][0];
-      let i = 0;
-      while (i <= charIndex) {
-        packedTmp = packed && (glyphsArray[i][0] != unpackedSize);
-        if (packedTmp) { // packed less bits to skip
-          bo += (glyphsArray[i][0] >> 3);
-          if(glyphsArray[i][0] & 7) bo++;
-        } else {
-          bo += (unpackedSize >> 3);
-          if(unpackedSize & 7) bo++;
-        }
-        if (++i > charIndex) break;
-        currentOffset = bo;
-        w = glyphsArray[i][1];
-        h = glyphsArray[i][2];
-        unpackedSize = h * w;
-      }
-      nextOffset = bo;
-    }
-    else
-  {
     // extract data: next offset
     if (charIndex + 1 < glyphsArray.length) {
       // To get the next offset, we need to find the next non-disabled
@@ -686,34 +671,47 @@ function extractFont (packed) {
     } else {
       nextOffset = window[name + 'Bitmaps'].length
     }
-  }  
+
     let disabled = (w == 0 || h == 0) && adv == 0
 
     if (!disabled) {
-      for (let k = 0; k < (nextOffset - currentOffset); k++) {
-        n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
-      }
-      if (packedTmp && glyphsArray[ind][0] != unpackedSize)
-      {
-        let blockLen = parseInt(n.substr(0, 8), 2);
+      if (packedFont) // now bitmapped bit data + block size @end
+      { // offset points to particular bit in data, char end zeros are ignored
+        const relIndex = charIndex - 1;
+        let bitPos = relIndex < 0 ? 0 : glyphsArray[relIndex][0]; // first char starts @0 and offset is position of next
+        let bitSize = glyphsArray[charIndex][0];
+        if (charIndex > 0)
+          bitSize -= glyphsArray[charIndex - 1][0]; // from 1st char bit size of compressed data is difference of this and previous bit offset
+        bitSize += bitPos & 7; // add offset before counting byte size
+        const byteSize = ((bitSize) >> 3) + !!(bitSize & 7);
+        bitSize -= bitPos & 7; // fix bits back
+        let bytePos = bitPos >> 3;
         let restoredBlocks = "";
-        let bInd = 8;
-        while (unpackedSize > 0)
+        const bmp = window[name + 'Bitmaps'];
+        for(let i=0;i<byteSize;i++)
         {
-          if (n[bInd] == '1') {
-            restoredBlocks += n.substr(++bInd, blockLen);
-            bInd += blockLen;
+          n += ('000000000' + bmp[bytePos + i].toString(2)).substr(-8);
+        }
+        n = n.substr(bitPos & 7, bitSize); // cut start offset
+        bitPos = 0; // => starting at highest (8.) bit
+        while (bitPos < bitSize)
+        {
+          if (n[bitPos] == '1') { // remove prefix for stored block
+            restoredBlocks += n.substr(++bitPos, blockLen);
+            bitPos += blockLen;
           } else {
-            restoredBlocks += "0".repeat(blockLen);
-            bInd++;
+            restoredBlocks += "0".repeat(blockLen); // replace 0 by block of zeros
+            bitPos++;
           }
-          unpackedSize -= blockLen;
         }
         n = restoredBlocks;
       }
+      else for (let k = 0; k < (nextOffset - currentOffset); k++) {
+        n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
+      }
     }
 
-    const xor = packedTmp && document.getElementById("unXor").checked;
+    const xor = packedFont && document.getElementById("unXor").checked;
     function xorData(n, w, h)
     {
       let res = [];
@@ -737,7 +735,11 @@ function extractFont (packed) {
       }
       return res.join("");
     }
-    if (xor) n = xorData(n, w, h);
+    if (xor) {
+      if (n.length < w * h) // we do not store last 0-s so append if missing
+        n += '0'.repeat(w * h - n.length);
+      n = xorData(n, w, h);
+    }
 
     grid = makeGlyphItem (n, w, h, char, adv, ow, oh, disabled)
 
