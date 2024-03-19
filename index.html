@@ -630,7 +630,7 @@ function extractFont (packed) {
   window['glyph_table_width'] = Math.max(160, maxW * 11 + 30 /* some margin */)
 
   const packedFont = glyphsArray[0][0] != 0;
-  const blockLen = window[name + 'Bitmaps'].pop(); // last element
+  const blockLen = window[name + 'Bitmaps'][0]; // last element
   const averageCharSize = parseInt(window[name + 'Bitmaps'].length / glyphsArray.length);
   if (packedFont) {
     for(let i=0;i<glyphsArray.length;i++)
@@ -685,7 +685,7 @@ function extractFont (packed) {
         bitSize += bitPos & 7; // add offset before counting byte size
         const byteSize = ((bitSize) >> 3) + !!(bitSize & 7);
         bitSize -= bitPos & 7; // fix bits back
-        let bytePos = bitPos >> 3;
+        let bytePos = (bitPos >> 3) + 1;
         let restoredBlocks = "";
         const bmp = window[name + 'Bitmaps'];
         for(let i=0;i<byteSize;i++)
