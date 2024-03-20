@@ -632,7 +632,7 @@ function extractFont (packed) {
 
   const packedFont = glyphsArray[0][0] != 0;
   const blockLen = window[name + 'Bitmaps'][0]; // last element
-  const averageCharSize = parseInt(window[name + 'Bitmaps'].length / glyphsArray.length);
+  const averageCharSize = parseInt(8 * parseInt(window[name + 'Bitmaps'].length) / glyphsArray.length);
   if (packedFont) {
     for(let i=0;i<glyphsArray.length;i++)
     {
@@ -1413,7 +1413,7 @@ $(document).ready(function () {
     if (xorPack)
     {
       bitsArray = EncodeFont(blockSizeSums, allChars, glyphs, charList);
-      let averagePos = parseInt(bitsArray.length / glyphs.length);
+      let averagePos = parseInt((8 * bitsArray.length) / glyphs.length);
       for (let i = 0; i < allChars.length; i++)
       {
         glyphs[i][0] -= averagePos * i;
