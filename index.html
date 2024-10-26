@@ -2,8 +2,8 @@
 <head>
   <meta charset="utf-8">
   <script
-  src="https://code.jquery.com/jquery-3.2.1.min.js"
-  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  src="https://code.jquery.com/jquery-3.7.0.min.js"
+  integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
   crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
   <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
@@ -344,7 +344,7 @@ function makeUpDownButton (name, func, color, width) {
   const button = $('<div class="ui mini compact buttons" style="margin:1px"></div>')
   const style = 'ui compact button ' + func + '-handler ' + color
   button.append('<button id="' + func + '-remove" class="' + style + '">-</button>')
-  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + '">' + name + '</button>')
+  button.append('<button id="' + func + '-value" class="ui compact disabled button ' + color + '" style="width:' + width + ';padding:0;">' + name + '</button>')
   button.append('<button id="' + func + '-add" class="' + style + '">+</button>')
   return button
 }
@@ -385,13 +385,14 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
   grid.append(div)
 
   const buttonBar = $('<div class="ui bottom attached warning message inner centered"></div>')
-  buttonBar.append(makeUpDownButton('Rows', 'row', 'purple', 50))
-  buttonBar.append(makeUpDownButton('Cols', 'col', 'violet', 50))
-  buttonBar.append(makeUpDownButton('Base', 'base', 'green', 50))
-  buttonBar.append(makeUpDownButton('XOff', 'xoff', 'blue', 50))
-  buttonBar.append(makeUpDownButton('XAdv', 'xadv', 'teal', 50))
+
+  buttonBar.append(makeUpDownButton('Rows: '+h, 'row', 'purple', 60))
+  buttonBar.append(makeUpDownButton('Cols: '+w, 'col', 'violet', 60))
+  buttonBar.append(makeUpDownButton('Base: '+oh, 'base', 'green', 60))
+  buttonBar.append(makeUpDownButton('XOff: '+ow, 'xoff', 'blue', 60))
+  buttonBar.append(makeUpDownButton('XAdv: '+adv, 'xadv', 'teal', 60))
   buttonBar.append(makeClipButtons('clip', 'gray', 10))
-  buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 110, disabled))
+  buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 120, disabled))
 
   grid.append(buttonBar)
 
@@ -535,12 +536,15 @@ function advanceLoading (percent) {
 function extractFont () {
   let data = $('#source').val()
 
-  // Extract name
-  const re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
-  const found = data.match(re)
+  const bitmaps_part_re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
+  const glyph_part_re = /const\ GFXglyph/
+  const font_part_re = /const\ GFXfont([\s\S]*)/g
 
-  if (found != null && found.length > 1) {
-    window['name'] = found[1]
+  // Extract name
+  const font_name = data.match(bitmaps_part_re)
+
+  if (font_name != null && font_name.length > 1) {
+    window['name'] = font_name[1]
   } else {
     alert('No correct font file found (name missing), please paste the content of an Adafruit GFX font file first.')
     $("#loader").hide()
@@ -549,13 +553,23 @@ function extractFont () {
 
   $('#glyphs').empty()
 
-  // extract GFXFont part
-  const last_part_re = /const\ GFXfont([\s\S]*)/g
-  const last_part = data.match(last_part_re)
-  window['last_part'] = last_part[0]
+  // Extract GFXFont part
+  const font_def = data.match(font_part_re)
+  window['font_def'] = font_def[0]
+
+  // Ignore any lines before the font definition (like headers, for instance)
+  // In case the parts come out of order, cut the lines until the first of any
+  // of the parts we are interested in.
+  const slice_index = Math.min(
+    data.indexOf(font_name[0]),
+    data.indexOf(font_def[0]),
+    data.search(glyph_part_re),
+  )
+  window.font_preamble = data.slice(0, slice_index)
+  data = data.slice(slice_index)
 
   // Get first, last and yOffset
-  let parts = last_part[0].split(',')
+  let parts = font_def[0].split(',')
   const number_hexa_re = /0[xX][0-9a-fA-F]+/gi
   const number_dec_re = /[0-9]+/gi
   if (parts[2].match(number_hexa_re)) {
@@ -578,7 +592,7 @@ function extractFont () {
     return
   }
 
-  data = data.replace(last_part[0], '')
+  data = data.replace(font_def[0], '')
   data = data.replace(/\{/gi, '[').replace(/\}/gi, ']')
   data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
 
@@ -590,7 +604,7 @@ function extractFont () {
       console.log(window["size"])
       console.log(window["first"])
       console.log(window["last"])
-      console.log(window["last_part"])
+      console.log(window["font_def"])
       console.log(window[name + "Bitmaps"])
       console.log(window[name + "Glyphs"])
       */
@@ -755,7 +769,7 @@ $(document).ready(function () {
 
   $('#loader').hide()
   window['name'] = null
-  window['last_part'] = null
+  window['font_def'] = null
 
   $('#extract').click(function () {
     advanceLoading(0)
@@ -829,6 +843,8 @@ $(document).ready(function () {
   $(document).on('click', '.row-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    const valueDisplay = $(e.target).parent().find('#row-value')[0]
+
     let height = parseInt(table.attr('data-h'))
 
     if (targetID === 'row-add') {
@@ -839,6 +855,7 @@ $(document).ready(function () {
 
     updatePixels(table, -1, height, -1, -1, false)
     table.attr('data-h', height)
+    valueDisplay.innerText = "Rows: " + height
     setGlyphTable(table)
     return false
   })
@@ -846,6 +863,7 @@ $(document).ready(function () {
   $(document).on('click', '.col-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    const valueDisplay = $(e.target).parent().find('#col-value')[0]
     let width = parseInt(table.attr('data-w'))
 
     if (targetID === 'col-add') {
@@ -856,6 +874,7 @@ $(document).ready(function () {
 
     updatePixels(table, width, -1, -1, -1, false)
     table.attr('data-w', width)
+    valueDisplay.innerText = "Cols: " + width
     setGlyphTable(table)
     return false
   })
@@ -863,12 +882,16 @@ $(document).ready(function () {
   $(document).on('click', '.base-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
-    if (targetID === 'base-add') {
-      table.attr('data-oh', parseInt(table.attr('data-oh')) + 1)
-    } else if (targetID === 'base-remove') {
-      table.attr('data-oh', parseInt(table.attr('data-oh')) - 1)
-    }
+    const valueDisplay = $(e.target).parent().find('#base-value')[0]
+    let base = parseInt(table.attr('data-oh'))
 
+    if (targetID === 'base-add') {
+      base++ 
+    } else if (targetID === 'base-remove') {
+      base--
+    }
+    table.attr('data-oh', base)
+    valueDisplay.innerText = "Base: " + base
     setGlyphTable(table)
     return false
   })
@@ -876,12 +899,16 @@ $(document).ready(function () {
   $(document).on('click', '.xadv-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
-    if (targetID === 'xadv-add') {
-      table.attr('data-adv', parseInt(table.attr('data-adv')) + 1)
-    } else if (targetID === 'xadv-remove') {
-      table.attr('data-adv', parseInt(table.attr('data-adv')) - 1)
-    }
+    const valueDisplay = $(e.target).parent().find('#xadv-value')[0]
+    let xadv = parseInt(table.attr('data-adv'))
 
+    if (targetID === 'xadv-add') {
+      xadv++
+    } else if (targetID === 'xadv-remove') {
+      xadv--
+    }
+    table.attr('data-adv',xadv)
+    valueDisplay.innerText = "XAdv: " + xadv
     setGlyphTable(table)
     return false
   })
@@ -889,11 +916,16 @@ $(document).ready(function () {
   $(document).on('click', '.xoff-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    const valueDisplay = $(e.target).parent().find('#xoff-value')[0]
+    let ow = parseInt(table.attr('data-ow'))
+
     if (targetID === 'xoff-add') {
-      table.attr('data-ow', parseInt(table.attr('data-ow')) + 1)
+      ow++
     } else if (targetID === 'xoff-remove') {
-      table.attr('data-ow', parseInt(table.attr('data-ow')) - 1)
+      ow--
     }
+    table.attr('data-ow', ow)
+    valueDisplay.innerText = "XOff: " + ow
 
     setGlyphTable(table)
     return false
@@ -959,7 +991,7 @@ $(document).ready(function () {
       onApprove: function() {
         let name = $('#newfont-name').val()
         if (name.length < 1) {
-          $('.ui.modal.message p').text('The font must have a name, I\'m not creating a new font with it.')
+          $('.ui.modal.message p').text('The font must have a name, I\'m not creating a new font without it.')
           $('.ui.modal.message').modal('show')
           return
         }
@@ -967,7 +999,7 @@ $(document).ready(function () {
         
         let newfontHeight = parseInt($('#newfont-height').val())
         if (newfontHeight < 1) {
-          $('.ui.modal.message p').text('The font height must be greater than 0, I\'m not creating a new font with it.')
+          $('.ui.modal.message p').text('The font height must be greater than 0, I\'m not creating a new font with this.')
           $('.ui.modal.message').modal('show')
           return
         }
@@ -1009,7 +1041,8 @@ $(document).ready(function () {
         window['name'] = name + '_'
         window[name + '_Bitmaps'] = [] // This is otherwise created by the eval() in extract font
         window['maxBaseline'] = newfontHeight
-        window['last_part'] = 'const GFXfont ' + name + ' PROGMEM = {(uint8_t *) ' + name + '_Bitmaps, (GFXglyph *)' + name + '_Glyphs, 0x00, 0x00, ' + newfontHeight + '};'
+        window['maxH'] = newfontHeight
+        window['font_def'] = 'const GFXfont ' + name + ' PROGMEM = {(uint8_t *) ' + name + '_Bitmaps, (GFXglyph *)' + name + '_Glyphs, 0x00, 0x00, ' + newfontHeight + '};'
         
         // Show the data
         $('.fontname').text('(' + name + ')').show()
@@ -1226,13 +1259,17 @@ $(document).ready(function () {
     let glyphsOutput = 'const GFXglyph ' + name + 'Glyphs[] PROGMEM = {\n'
     glyphsOutput += glyphs.join('\n') + '\n};\n\n'
 
-    // Create a new last_part with the updated first & last glyph values in it
-    let parts = window['last_part'].split(',')    
+    // Create a new font_def with the updated first & last glyph values in it
+    let parts = window['font_def'].split(',')
     parts[2] = '0x' + firstglyph.toString(16).toUpperCase()
     parts[3] = '0x' + lastglyph.toString(16).toUpperCase()
-    const updated_last_part = parts.join(", ",parts)
+    const updated_font_def = parts.join(", ",parts)
 
-    data = bitmapsOutput + glyphsOutput + updated_last_part
+    data = bitmapsOutput + glyphsOutput + updated_font_def
+
+    // Add back the font preamble, if present
+    data = (window.font_preamble ?? '') + data
+
     $('#result').val(data)
   })
 })

@@ -22,6 +22,8 @@ This is useful since the fontconvert utility does not always create all the char
 
 <img src="https://avatars.githubusercontent.com/u/2691293?s=400&v=4" width="50px;"/> [Christof Arnosti](https://github.com/charno) — fixes to allow adding characters, improvements for disabled characters
 
+<img src="https://avatars.githubusercontent.com/u/8503756?s=400&v=4" width="50px;"/> [Marcel Robitaille](https://github.com/MarcelRobitaille) — feature to allow the conservation of font preamble
+
 ## License
 
 MIT. See licence file.
