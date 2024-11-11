@@ -165,6 +165,7 @@
             <textarea id="source"></textarea>
           </div>
             <button class="ui button teal" id="extract"><i class="icon upload"></i> Extract</button>
+            <span style="display: inline-flex;margin: 7px;">(<input type="checkbox" checked id="unXor" onclick="event.cancelBubble=true">&nbsp;unXOR)</span>
             <button class="ui button red right floated" id="reset" disabled><i class="icon undo"></i> Reset</button>
             <button class="ui button blue right floated" id="createFont"><i class="icon file outline"></i> Create a new font</button>
         </div>
@@ -285,6 +286,7 @@
             </div>
           </div>
           <button class="ui button green" id="export" disabled="disabled"><i class="icon download"></i> Process and create file</button>
+          <button class="ui button green" onclick="$('#export').trigger('click', [1])">... & Pack</button>
         </div>
       </div>
     </div>
@@ -529,7 +531,7 @@ function advanceLoading (percent) {
   element.style.width = Math.floor(294 * percent)
 }
 
-function extractFont () {
+function extractFont (packed) {
   let data = $('#source').val()
 
   const bitmaps_part_re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
@@ -634,13 +636,25 @@ function extractFont () {
   // Calculate the ideal glyph width. 160px is the minimum (for the buttons)
   window['glyph_table_width'] = Math.max(160, maxW * 11 + 30 /* some margin */)
 
+  const packedFont = glyphsArray[0][0] != 0;
+  const blockLen = window[name + 'Bitmaps'][0]; // last element
+  const averageCharSize = parseInt(8 * parseInt(window[name + 'Bitmaps'].length) / glyphsArray.length);
+  if (packedFont) {
+    for(let i=0;i<glyphsArray.length;i++)
+    {
+      if (glyphsArray[i][0] == -32768)
+        glyphsArray[i][0] = 0; // empty char
+      else glyphsArray[i][0] += i * averageCharSize; // adjust position by average to better fit bit position to I16
+    }
+  }
+
   // Display tables
   for (ind in glyphsArray) {
     const charIndex = parseInt(ind)
     // for each glyph
     const char = String.fromCharCode(parseInt(window['first'], 16) + charIndex)
-    const w = glyphsArray[ind][1]
-    const h = glyphsArray[ind][2]
+    let w = glyphsArray[ind][1]
+    let h = glyphsArray[ind][2]
     const adv = glyphsArray[ind][3]
     const ow = glyphsArray[ind][4]
     const oh = glyphsArray[ind][5]
@@ -664,13 +678,75 @@ function extractFont () {
     } else {
       nextOffset = window[name + 'Bitmaps'].length
     }
-    
+
     let disabled = (w == 0 || h == 0) && adv == 0
 
     if (!disabled) {
-      for (let k = 0; k < (nextOffset - currentOffset); k++) {
+      if (packedFont) // now bitmapped bit data + block size @end
+      { // offset points to particular bit in data, char end zeros are ignored
+        const relIndex = charIndex - 1;
+        let bitPos = relIndex < 0 ? 0 : glyphsArray[relIndex][0]; // first char starts @0 and offset is position of next
+        let bitSize = glyphsArray[charIndex][0];
+        if (charIndex > 0)
+          bitSize -= glyphsArray[charIndex - 1][0]; // from 1st char bit size of compressed data is difference of this and previous bit offset
+        bitSize += bitPos & 7; // add offset before counting byte size
+        const byteSize = ((bitSize) >> 3) + !!(bitSize & 7);
+        bitSize -= bitPos & 7; // fix bits back
+        let bytePos = (bitPos >> 3) + 1;
+        let restoredBlocks = "";
+        const bmp = window[name + 'Bitmaps'];
+        for(let i=0;i<byteSize;i++)
+        {
+          n += ('000000000' + bmp[bytePos + i].toString(2)).substr(-8);
+        }
+        n = n.substr(bitPos & 7, bitSize); // cut start offset
+        bitPos = 0; // => starting at highest (8.) bit
+        while (bitPos < bitSize)
+        {
+          if (n[bitPos] == '1') { // remove prefix for stored block
+            restoredBlocks += n.substr(++bitPos, blockLen);
+            bitPos += blockLen;
+          } else {
+            restoredBlocks += "0".repeat(blockLen); // replace 0 by block of zeros
+            bitPos++;
+          }
+        }
+        n = restoredBlocks;
+      }
+      else for (let k = 0; k < (nextOffset - currentOffset); k++) {
         n += ('000000000' + window[name + 'Bitmaps'][currentOffset + k].toString(2)).substr(-8)
       }
+    }
+
+    function UnXorData(n, w, h)
+    {
+      let res = [];
+      for(let y=0;y<h;y++)
+      {
+        if (!y) {
+          res.push(n.substr(0, w)); // keep 1st row intact
+          continue;
+        }
+        function xorRow(xoring, xored)
+        {
+          let res = [];
+          for(let i=0;i<xoring.length;i++)
+          {
+            res.push((xoring[i] == xored[i] ? '0' : '1'));
+          }
+          return res.join("");
+        }
+        const pos = y*w;
+        res.push(xorRow(res[y-1], n.substr(pos)));
+      }
+      return res.join("");
+    }
+
+    const xor = packedFont && document.getElementById("unXor").checked;
+    if (xor) {
+      if (n.length < w * h) // we do not store last 0-s so append if missing
+        n += '0'.repeat(w * h - n.length);
+      n = UnXorData(n, w, h);
     }
 
     grid = makeGlyphItem (n, w, h, char, adv, ow, oh, disabled)
@@ -711,6 +787,144 @@ function displayGlyphTable () {
 
     setGlyphTableClosure($(this), (i + 1) / l)
   })
+}
+
+function xorData(n, w, h)
+{
+  let res = [];
+  for(let y=0;y<h;y++)
+  {
+    if (!y) {
+      res.push(n.substr(0, w)); // keep 1st row intact
+      continue;
+    }
+    function xorRow(xoring, xored)
+    {
+      let res = [];
+      for(let i=0;i<xoring.length;i++)
+      {
+        res.push((xoring[i] == xored[i] ? '0' : '1'));
+      }
+      return res.join("");
+    }
+    const pos = y*w;
+    res.push(xorRow(n.substr(pos - w, w), n.substr(pos, w)));
+  }
+  return res.join("");
+}
+
+function TrimEndZeros(asciiMap)
+{
+    let lastZero = asciiMap.length;
+    if (lastZero > 0)
+    {
+        let lastZeroStart = lastZero;
+        while (lastZero > 0 && asciiMap[--lastZero] == '0') ;
+        if (lastZeroStart != ++lastZero)
+            asciiMap = asciiMap.substring(0, lastZero);
+        return asciiMap;
+    }
+}
+
+function CountBitsAndStats(charList, asciiMap, blockSizeSums)
+{
+  let sums = [];
+  charList.push(sums);
+  sums.push(0); // afterBlock - startOfBlock = onesCount
+  let sum = 0;
+
+  for (let bit of asciiMap)
+  {
+    sum += bit - '0';
+    sums.push(sum);
+  }
+  UpdateBlockStats(sums, asciiMap, blockSizeSums);
+}
+
+function UpdateBlockStats(charList, asciiMap, blockSizeSums)
+{
+    for (let blockWidth = 2; blockWidth < blockSizeSums.length + 2; blockWidth++)
+    {
+        let pos = 0;
+        while (pos < asciiMap.length)
+        {
+            let nextBlock = Math.min(pos + blockWidth, charList.length - 1);
+            if (charList[nextBlock] - charList[pos] > 0) blockSizeSums[blockWidth - 2] += blockWidth;
+            blockSizeSums[blockWidth - 2]++; // zero or 1b prefix
+            pos += blockWidth;
+        }
+    }
+}
+
+function EncodeFont(blockSizeSums, allChars, glyphs, charList)
+{
+  let blockSize = Math.min.apply(null, blockSizeSums);
+  blockSize = blockSizeSums.indexOf(blockSize) + 2;
+  let bitPos = 0, byteSize = 0;
+  let bitBmp = "";
+  for (let i = 0; i < allChars.length; i++)
+  {
+      let bits = EncodeChar(allChars, blockSize, i, charList);
+      bitPos += bits.length;
+      glyphs[i][0] = bitPos;
+      bitBmp += bits;
+  }
+
+  return BinaryStringToHexString(byteSize, bitBmp, blockSize);
+}
+
+function BinaryStringToHexString(byteSize, bitBmp, blockSize)
+{
+  let bytes = 0;
+  if (!bitBmp.length)
+      return 0;
+
+  let result = [blockSize];
+
+  // TODO: check all 1's or 0's... throw otherwise
+
+  let mod4Len = bitBmp.length % 8;
+  if (mod4Len != 0)
+  {
+      // pad to length multiple of 8
+      bitBmp = bitBmp.padEnd((parseInt(bitBmp.length / 8) + 1) * 8, '0');
+  }
+
+  for (let i = 0; i < bitBmp.length; i += 8)
+  {
+      let eightBits = bitBmp.substr(i, 8);
+      result.push("0x" + parseInt(eightBits, 2).toString(16));
+      bytes++;
+  }
+
+  byteSize = result.length;
+
+  return result;
+}
+
+function EncodeChar(allChars, blockSize, index, bitCounts)
+{
+  let pos = 0;
+  let allBits = bitCounts[index].length;
+  if (allChars[index].length == 0)
+      return allChars[index];
+  allBits--;
+  let encodedData = "";
+  while (pos <= allBits)
+  {
+      let nextPos = Math.min(pos + blockSize, allBits);
+      if (bitCounts[index][nextPos] - bitCounts[index][pos] > 0)
+      {
+          nextPos = Math.min(pos + blockSize, allChars[index].length) - pos;
+          encodedData += '1' + allChars[index].substr(pos, nextPos);
+      }
+      else
+      {
+          encodedData += '0';
+      }
+      pos += blockSize;
+  }
+  return encodedData;
 }
 
 $(document).ready(function () {
@@ -767,10 +981,10 @@ $(document).ready(function () {
   window['name'] = null
   window['font_def'] = null
 
-  $('#extract').click(function () {
+  $('#extract').click(function (event, packed) {
     advanceLoading(0)
     $('#loader').fadeIn(function() {
-      extractFont()
+      extractFont(packed)
     })
   })
 
@@ -1163,13 +1377,18 @@ $(document).ready(function () {
 
   })
 
-  $('#export').click(function () {
+  $('#export').click(function (event, xorPack) {
     const glyphs = []
-    const bitsArray = []
+    let bitsArray = []
     let offset = 0
     const firstglyph = parseInt($('#firstglyph').val(), 16)
     const lastglyph = parseInt($('#lastglyph').val(), 16)
 
+    let allChars = [];
+    let charList = [];
+    let blockSizeSums;
+    if (xorPack)
+      blockSizeSums = eval('[' + "0".repeat(254).split("").toString() + ']')
     $('.table.glyph').each(function () {
       const t = $(this)
       // Ignore glyphs outside of requested range
@@ -1181,6 +1400,21 @@ $(document).ready(function () {
       if (t.attr('data-dis') == 1) {
         dataPixels = ''
       }
+
+      // Set data width/height to 0 for disabled glyphs
+      const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
+      const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
+      
+      let packedData;
+      if (xorPack)
+      {
+        packedData = xorData(dataPixels, w, h);
+        allChars.push(packedData);
+        if (packedData.length)
+          packedData = TrimEndZeros(packedData);
+        CountBitsAndStats(charList, packedData, blockSizeSums);
+      }
+
       let bits = ''
 
       for (let i = 0; i < dataPixels.length; i++) {
@@ -1197,42 +1431,36 @@ $(document).ready(function () {
         bitsArray.push('0x' + ('00' + parseInt((bits + '00000000').slice(0, 8), 2).toString(16).toUpperCase()).slice(-2))
       }
 
-      // Set data width/height to 0 for disabled glyphs
-      const w = parseInt(t.attr('data-w')) * (1 - parseInt(t.attr('data-dis')))
-      const h = parseInt(t.attr('data-h')) * (1 - parseInt(t.attr('data-dis')))
-
       let char = t.attr('data-char')
       const charCode = char.charCodeAt(0).toString(16).toUpperCase()
       const charDisplay = char.replace(/[\x00-\x1F\x7F-\x9F\xAD]/g, 'non-printable')
       const comment = '// 0x' + charCode + ' \'' + charDisplay + '\''
       
       if (t.attr('data-dis') == 0) {
-        glyphs.push(
-          '  { ' +
-          ('     ' + offset).slice(-5) + ', ' +
-          ('   ' + w).slice(-3) + ', ' +
-          ('   ' + h).slice(-3) + ', ' +
-          ('   ' + parseInt(t.attr('data-adv'))).slice(-3) + ', ' +
-          ('    ' + parseInt(t.attr('data-ow'))).slice(-4) + ', ' +
-          ('    ' + parseInt(t.attr('data-oh'))).slice(-4) + ' },   ' +
-          comment)
+        glyphs.push([
+          offset, w, h, parseInt(t.attr('data-adv')), parseInt(t.attr('data-ow')),
+          parseInt(t.attr('data-oh')) + " }," + comment]);
       } else {
-        glyphs.push(
-          '  { ' +
-          '    0, ' +
-          '  0, ' +
-          '  0, ' +
-          '  0, ' +
-          '   0, ' +
-          '   0 },   ' +
-          comment)
+        glyphs.push([0, 0, 0, 0, 0, "0 }," + comment]);
       }
       
       offset = bitsArray.length
     })
 
+    if (xorPack)
+    {
+      bitsArray = EncodeFont(blockSizeSums, allChars, glyphs, charList);
+      let averagePos = parseInt((8 * bitsArray.length) / glyphs.length);
+      for (let i = 0; i < allChars.length; i++)
+      {
+        glyphs[i][0] -= averagePos * i;
+      }
+      if (glyphs[0][0] == 0)
+        glyphs[0][0] = -32768; // special mark if (empty) space present
+    }
+
     // Bitmaps
-    let bitmapsOutput = 'const uint8_t ' + name + 'Bitmaps[] PROGMEM = {\n'
+    let bitmapsOutput = 'const uint8_t ' + name + 'Bitmaps[] PROGMEM = { // ' + bitsArray.length + 'B\n'
     // We want to join per 12 words
     const limit = Math.floor(bitsArray.length / 12)
     for (let nb = 0; nb < limit; nb++) {
@@ -1257,11 +1485,8 @@ $(document).ready(function () {
     }
     bitmapsOutput += '};\n\n'
 
-    // Glyphs
-    // The last glyph has a ',' too much at the end, we need to remove it (it's easier than to avoid putting it in the first place)
-    glyphs[glyphs.length - 1] = glyphs[glyphs.length - 1].replace('},', '} ')
     let glyphsOutput = 'const GFXglyph ' + name + 'Glyphs[] PROGMEM = {\n'
-    glyphsOutput += glyphs.join('\n') + '\n};\n\n'
+    glyphsOutput += '{' + glyphs.join("\n{") + '\n};\n\n'
 
     // Create a new font_def with the updated first & last glyph values in it
     let parts = window['font_def'].split(',')
