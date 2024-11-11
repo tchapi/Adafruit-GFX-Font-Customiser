@@ -385,16 +385,26 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
   grid.append(div)
 
   const buttonBar = $('<div class="ui bottom attached warning message inner centered"></div>')
+
   buttonBar.append(makeUpDownButton('Rows: '+h, 'row', 'purple', 60))
   buttonBar.append(makeUpDownButton('Cols: '+w, 'col', 'violet', 60))
   buttonBar.append(makeUpDownButton('Base: '+oh, 'base', 'green', 60))
   buttonBar.append(makeUpDownButton('XOff: '+ow, 'xoff', 'blue', 60))
   buttonBar.append(makeUpDownButton('XAdv: '+adv, 'xadv', 'teal', 60))
+  buttonBar.append(makeClipButtons('clip', 'gray', 10))
   buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 120, disabled))
 
   grid.append(buttonBar)
 
   return grid
+}
+
+function makeClipButtons(func, color, width) {
+    const button = $('<div class="ui mini compact buttons" style="margin:1px"></div>')
+    const style = 'ui compact button ' + func + '-handler ' + color
+    button.append('<button id="' + func + '-copy" class="' + style + '">COPY</button>')
+    button.append('<button id="' + func + '-paste" class="' + style + '">PASTE</button>')
+    return button
 }
 
 function setGlyphTable (table) {
@@ -689,7 +699,6 @@ function extractFont () {
   $('#extract').prop( "disabled", true )
 }
 
-
 function displayGlyphTable () {
   const l = $('#glyphs').children().length
   $('#glyphs').children().each(function (i) {
@@ -709,6 +718,8 @@ function displayGlyphTable () {
 }
 
 $(document).ready(function () {
+ 
+  var clip_data = {}
 
   $('#new-character-code').parent().hide()
   $('#add').attr('disabled', 'disabled')
@@ -805,6 +816,28 @@ $(document).ready(function () {
     if (isFilling) {
       fillPixel($(e.target), fillingMode)
     }
+  })
+
+  $(document).on('click', '.clip-handler', function (e) {
+    const targetID = $(e.target).attr('id')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
+    if (targetID === 'clip-copy') {
+      clip_data.xadvance  = parseInt(table.attr('data-adv'))
+      clip_data.xoffset   = parseInt(table.attr('data-ow'))
+      clip_data.yoffset   = parseInt(table.attr('data-oh'))        
+      clip_data.width     = parseInt(table.attr('data-w'))
+      clip_data.height    = parseInt(table.attr('data-h'))        
+      clip_data.pixels    = table.attr('data-pixels')
+    } else if (targetID === 'clip-paste') {
+      table.attr('data-adv',      clip_data.xadvance)
+      table.attr('data-ow',       clip_data.xoffset)
+      table.attr('data-oh',       clip_data.yoffset)
+      table.attr('data-w',        clip_data.width)
+      table.attr('data-h',        clip_data.height)
+      table.attr('data-pixels',   clip_data.pixels)
+    }
+    setGlyphTable(table)
+    return false
   })
 
   $(document).on('click', '.row-handler', function (e) {
