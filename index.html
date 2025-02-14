@@ -526,8 +526,8 @@ function extractFont () {
   let data = $('#source').val()
 
   const bitmaps_part_re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
-  const glyph_part_re = /const\ GFXglyph/
-  const font_part_re = /const\ GFXfont([\s\S]*)/g
+  const glyph_part_re = /const\ RKIT_TGlyph/
+  const font_part_re = /const\ RKIT_TFont([\s\S]*)/g
 
   // Extract name
   const font_name = data.match(bitmaps_part_re)
@@ -583,7 +583,7 @@ function extractFont () {
 
   data = data.replace(font_def[0], '')
   data = data.replace(/\{/gi, '[').replace(/\}/gi, ']')
-  data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
+  data = data.replace('const RKIT_TGlyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
 
   eval(data)
 
