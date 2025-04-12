@@ -1,21 +1,11 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <script
-  src="https://code.jquery.com/jquery-3.7.0.min.js"
-  integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g="
-  crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.css">
   <script src="https://cdn.jsdelivr.net/npm/semantic-ui@2.4.2/dist/semantic.min.js"></script>
   <style>
-      :root {
-        --main-bg-color: black;
-        --main-fg-color: white;
-      }
-      
     html, body {
-        background-color: var(--main-bg-color);
-        color: var(--main-fg-color);
       margin: 0 10px;
     }
     textarea {
@@ -157,7 +147,15 @@
    </style>
 </head>
 <body>
-  
+  <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+
+  <h1 class="ui header">Adafruit GFX Pixel font customiser</h1>
+  <p>
+    <em>Created by <a href="https://github.com/tchapi">tchapi</a>, major improvements by <a href="https://github.com/cmarrin">cmarrin</a> and <a href="https://github.com/charno">charno</a> - Source code available on <a href="https://github.com/tchapi/Adafruit-GFX-Font-Customiser">Github</a>.</em>
+  </p>
+
+  <div class="ui divider"></div>
+
   <div class="ui grid">
     <div class="eight wide column">
       <div class="ui teal segment">
@@ -349,8 +347,7 @@ function makeUpDownButton (name, func, color, width) {
 }
 
 function makeCheckButton (name, func, color, width, disabled) {
-  const button = $('<span class="ui mini compact" style="margin:1px"></span>')
-  button.append('<label class="ui '+color+' label" disabled style="width:' + width + '""><input type="checkbox" class="'+func+'-handler" id="'+func+'"' + (disabled ? ' checked="checked"' : '') + '> '+name+'</label>')
+  const button = $('<label class="ui '+color+' label" disabled style="width:' + width + '; cursor: pointer; margin-top: 1px; display: inline-flex; justify-content: center;"><input type="checkbox" class="'+func+'-handler" id="'+func+'"' + (disabled ? ' checked="checked"' : '') + '><span style="line-height: 13px; margin-left: 2px;">'+name+'</span></label>')
   return button
 }
 
@@ -384,16 +381,26 @@ function makeGlyphItem (n, w, h, char, adv, ow, oh, disabled) {
   grid.append(div)
 
   const buttonBar = $('<div class="ui bottom attached warning message inner centered"></div>')
+
   buttonBar.append(makeUpDownButton('Rows: '+h, 'row', 'purple', 60))
   buttonBar.append(makeUpDownButton('Cols: '+w, 'col', 'violet', 60))
   buttonBar.append(makeUpDownButton('Base: '+oh, 'base', 'green', 60))
   buttonBar.append(makeUpDownButton('XOff: '+ow, 'xoff', 'blue', 60))
   buttonBar.append(makeUpDownButton('XAdv: '+adv, 'xadv', 'teal', 60))
+  buttonBar.append(makeClipButtons('clip', 'gray', 10))
   buttonBar.append(makeCheckButton('Disable', 'dis', 'yellow', 120, disabled))
 
   grid.append(buttonBar)
 
   return grid
+}
+
+function makeClipButtons(func, color, width) {
+    const button = $('<div class="ui mini compact buttons" style="margin:1px; width: 121px;"></div>')
+    const style = 'ui compact button ' + func + '-handler ' + color
+    button.append('<button id="' + func + '-copy" class="' + style + '">COPY</button>')
+    button.append('<button id="' + func + '-paste" class="' + style + '">PASTE</button>')
+    return button
 }
 
 function setGlyphTable (table) {
@@ -526,8 +533,8 @@ function extractFont () {
   let data = $('#source').val()
 
   const bitmaps_part_re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
-  const glyph_part_re = /const\ RKIT_TGlyph/
-  const font_part_re = /const\ RKIT_TFont([\s\S]*)/g
+  const glyph_part_re = /const\ GFXglyph/
+  const font_part_re = /const\ GFXfont([\s\S]*)/g
 
   // Extract name
   const font_name = data.match(bitmaps_part_re)
@@ -583,7 +590,7 @@ function extractFont () {
 
   data = data.replace(font_def[0], '')
   data = data.replace(/\{/gi, '[').replace(/\}/gi, ']')
-  data = data.replace('const RKIT_TGlyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
+  data = data.replace('const GFXglyph ', '').replace('const uint8_t ', '').replace(/\[\]\ PROGMEM/gi, '')
 
   eval(data)
 
@@ -688,7 +695,6 @@ function extractFont () {
   $('#extract').prop( "disabled", true )
 }
 
-
 function displayGlyphTable () {
   const l = $('#glyphs').children().length
   $('#glyphs').children().each(function (i) {
@@ -708,6 +714,8 @@ function displayGlyphTable () {
 }
 
 $(document).ready(function () {
+ 
+  var clip_data = {}
 
   $('#new-character-code').parent().hide()
   $('#add').attr('disabled', 'disabled')
@@ -806,6 +814,36 @@ $(document).ready(function () {
     }
   })
 
+  $(document).on('click', '.clip-handler', function (e) {
+    const targetID = $(e.target).attr('id')
+    const actions = $(e.target).parent().parent()
+    const table = actions.parent().find('.table.glyph')
+    if (targetID === 'clip-copy') {
+      clip_data.xadvance = parseInt(table.attr('data-adv'))
+      clip_data.xoffset = parseInt(table.attr('data-ow'))
+      clip_data.yoffset = parseInt(table.attr('data-oh'))
+      clip_data.width = parseInt(table.attr('data-w'))
+      clip_data.height = parseInt(table.attr('data-h'))
+      clip_data.pixels = table.attr('data-pixels')
+    } else if (targetID === 'clip-paste') {
+      table.attr('data-adv', clip_data.xadvance)
+      table.attr('data-ow', clip_data.xoffset)
+      table.attr('data-oh', clip_data.yoffset)
+      table.attr('data-w', clip_data.width)
+      table.attr('data-h', clip_data.height)
+      table.attr('data-pixels', clip_data.pixels)
+
+      // Update button values
+      actions.find('#row-value')[0].innerText = "Rows: " + clip_data.height
+      actions.find('#col-value')[0].innerText = "Cols: " + clip_data.width
+      actions.find('#base-value')[0].innerText = "Base: " + clip_data.yoffset
+      actions.find('#xadv-value')[0].innerText = "XAdv: " + clip_data.xadvance
+      actions.find('#xoff-value')[0].innerText = "XOff: " + clip_data.xoffset
+    }
+    setGlyphTable(table)
+    return false
+  })
+
   $(document).on('click', '.row-handler', function (e) {
     const targetID = $(e.target).attr('id')
     const table = $(e.target).parent().parent().parent().find('.table.glyph')
@@ -898,7 +936,7 @@ $(document).ready(function () {
   })
 
   $(document).on('change', '.dis-handler', function (e) {
-    const table = $(e.target).parent().parent().parent().parent().find('.table.glyph')
+    const table = $(e.target).parent().parent().parent().find('.table.glyph')
     table.attr('data-dis', 1 - parseInt(table.attr('data-dis')))
     table.fadeTo('fast', 1 - 0.9 * table.attr('data-dis'))
     return false
