@@ -531,6 +531,8 @@ function advanceLoading (percent) {
 
 function extractFont () {
   let data = $('#source').val()
+  
+  data = data.replace(/\bunsigned char\b/, "uint8_t")
 
   const bitmaps_part_re = /const\ uint8\_t\ (.*)Bitmaps\[\]/
   const glyph_part_re = /const\ GFXglyph/
@@ -1232,7 +1234,7 @@ $(document).ready(function () {
     })
 
     // Bitmaps
-    let bitmapsOutput = 'const uint8_t ' + name + 'Bitmaps[] PROGMEM = {\n'
+    let bitmapsOutput = 'const unsigned char ' + name + 'Bitmaps[] PROGMEM = {\n'
     // We want to join per 12 words
     const limit = Math.floor(bitsArray.length / 12)
     for (let nb = 0; nb < limit; nb++) {
