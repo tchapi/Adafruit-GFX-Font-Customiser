@@ -1116,7 +1116,7 @@ $(document).ready(function () {
           return
         }
 
-        if (newCharCode > 65535) {
+        if (newCharCode > 127) {
           $('.ui.modal.message p').text('This character is out of range, I\'m not adding it.')
           $('.ui.modal.message').modal('show')
           return
